@@ -159,7 +159,7 @@ def correctrad(Day,Hour,Lat,Lon,Slope,Aspect,Altitude,Altitude_UnitLatLon):
     #theta    =(Day-1)*2 * pi/365  # day expressed in radians
     theta    =(Day-1)*360.0/365.0  # day expressed in degrees
      
-    SolDec =180/pi *  (0.006918-0.399912 * cos(theta)+0.070257 * sin(theta) -  0.006758 * cos(2*theta)+0.000907 * sin(2*theta) -  0.002697 *  cos(3*theta)+0.001480 * sin(3*theta))
+    SolDec =180/pi * (0.006918-0.399912 * cos(theta)+0.070257 * sin(theta) - 0.006758 * cos(2*theta)+0.000907 * sin(2*theta) - 0.002697 * cos(3*theta)+0.001480 * sin(3*theta))
     
     #HourAng = 180/pi * 15*(Hour-12.01)
     HourAng = 15.0*(Hour-12.01) 
@@ -182,7 +182,6 @@ def correctrad(Day,Hour,Lat,Lon,Slope,Aspect,Altitude,Altitude_UnitLatLon):
     cosIncidentFlat = sin(SolAlt)*cos(FlatLine)+cos(SolAlt)*sin(FlatLine)*cos(SolAzi-FlatSpect)
     # Fro flat surface..    
     #cosIncident = sin(SolAlt) + cos(SolAzi-Aspect)
-
 
     # Critical angle sun
     # ----------------------------
@@ -267,11 +266,6 @@ def GenRadMaps(SaveDir,Lat,Lon,Slope,Aspect,Altitude,DegreeDem,logje,start=1,end
                 avshade=avshade + scalar(shade)
                 cordir = cordir + craddir
                 flatdir = flatdir + craddirflat
-
-                nrr = "%03d" % id
-                #report(crad,"tt000000." + nrr)
-                #report(shade,"sh000000." + nrr)
-                #report(cradnodem,"ttr00000." + nrr)
                 id = id + 1
 
 
@@ -311,13 +305,14 @@ def main(argv=None):
     xymetres = False
     lat = 52
     lon = 10
-    loglevel = logging.DEBUG
+    thelevel = logging.DEBUG
     outputdir="output_rad"
     startday = 1
     endday = 2
     calc_interval = 60
     shour=1
     ehour=23
+
 
     for o, a in opts:
         if o == '-h': usage()
@@ -334,7 +329,7 @@ def main(argv=None):
         if o == '-e': ehour = int(a)
 
 
-    logger = e2o_utils.setlogger("wflow_prepare_rad.log","wflow_prepare_rad",level=loglevel)
+    logger = e2o_utils.setlogger("wflow_prepare_rad.log","wflow_prepare_rad",level=thelevel)
     if not os.path.exists(thedem):
         logger.error("Cannot find dem: " + thedem + " exiting.")
         sys.exit(1)
