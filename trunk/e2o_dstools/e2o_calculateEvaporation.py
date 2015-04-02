@@ -1017,7 +1017,7 @@ def main(argv=None):
         #get grid info
         resX, resY, cols, rows, highResLon, highResLat, data, FillVal = readMap((os.path.join('highResDEM','DEM.tif')),'GTiff',logger)
        
-        elevationCorrection, highResDEM, resLowResDEM = resampleDEM('highResDEM','lowResDEM',logger)
+        elevationCorrection, highResDEM, resLowResDEM = resampleDEM(FNhighResDEM,FNlowResDEM,logger)
 
     #Check whether evaporation should be calculated
     calculateEvap   = configget(logger,theconf,"selection","calculateEvap",calculateEvap)
@@ -1070,7 +1070,7 @@ def main(argv=None):
                             if variables[i]     == 'SurfaceIncidentShortwaveRadiation':
                                 mean_as_map     = correctRsin(mean_as_map,currentdate,radcordir,logger)
                             if variables[i]     == 'SurfaceAtmosphericPressure':
-                                mean_as_map     = correctPres(relevantDataFields, mean_as_map, highResDEM, lowResDEM)
+                                mean_as_map     = correctPres(relevantDataFields, mean_as_map, highResDEM, resLowResDEM)
                                 
                         relevantDataFields.append(mean_as_map)
                                             
