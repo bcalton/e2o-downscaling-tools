@@ -1007,6 +1007,7 @@ def main(argv=None):
     oformat = configget(logger,theconf,"output","format","PCRaster")
     odir = configget(logger,theconf,"output","directory","output/")
     oprefix = configget(logger,theconf,"output","prefix","E2O")
+    radcordir = configget(logger,theconf,"files","radiationcordir","ouput_rad")
 
     # Check whether downscaling should be applied
     downscaling   = configget(logger,theconf,"selection","downscaling",downscaling)
@@ -1065,7 +1066,7 @@ def main(argv=None):
                             if variables[i]     == 'Temperature':
                                 mean_as_map     = correctTemp(mean_as_map,elevationCorrection)
                             if variables[i]     == 'SurfaceIncidentShortwaveRadiation':
-                                mean_as_map     = correctRsin(mean_as_map,currentdate,'radiationCor',logger)
+                                mean_as_map     = correctRsin(mean_as_map,currentdate,radcordir,logger)
                             if variables[i]     == 'SurfaceAtmosphericPressure':
                                 mean_as_map     = correctPres(relevantDataFields, mean_as_map, highResDEM, resLowResDEM)
                                 
