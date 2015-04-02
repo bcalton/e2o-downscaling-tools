@@ -1008,8 +1008,8 @@ def main(argv=None):
     odir = configget(logger,theconf,"output","directory","output/")
     oprefix = configget(logger,theconf,"output","prefix","E2O")
     radcordir = configget(logger,theconf,"downscaling","radiationcordir","output_rad")
-    highResDEM = configget(logger,theconf,"downscaling","highResDEM","downscaledem.map")
-    lowResDEM = configget(logger,theconf,"downscaling","lowResDEM","origdem.map")
+    FNhighResDEM = configget(logger,theconf,"downscaling","highResDEM","downscaledem.map")
+    FNlowResDEM = configget(logger,theconf,"downscaling","lowResDEM","origdem.map")
 
     # Check whether downscaling should be applied
     downscaling   = configget(logger,theconf,"selection","downscaling",downscaling)
