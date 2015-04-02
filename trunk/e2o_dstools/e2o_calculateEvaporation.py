@@ -1059,6 +1059,7 @@ def main(argv=None):
                         logger.info("Get data body...")
                         if downscaling == 'True':
                             logger.info("Downscaling...")
+                            print variables[i]
                             save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,mean_as_map,int(ncnt),'temp',prefixes[i],oformat='GTiff')                     
                             mean_as_map = resample('highResDEM',prefixes[i],int(ncnt),logger)
                             if variables[i]     == 'Temperature':
