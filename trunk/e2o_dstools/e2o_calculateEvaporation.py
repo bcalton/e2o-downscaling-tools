@@ -646,7 +646,7 @@ def correctTemp(Temp,elevationCorrection):
 
 def correctRsin(Rsin,currentdate,radiationCorDir,logger):
     #get day of year
-    logger.info("Correcting incoming radiation with DEm...")
+    logger.info("Correcting incoming radiation with DEM...")
     tt  = currentdate.timetuple()
     JULDAY = tt.tm_yday
     #read data from radiation correction files
@@ -1065,7 +1065,6 @@ def main(argv=None):
                             if variables[i]     == 'Temperature':
                                 mean_as_map     = correctTemp(mean_as_map,elevationCorrection)
                             if variables[i]     == 'SurfaceIncidentShortwaveRadiation':
-                                print "DDDDDDDDDDDDDDDDDDDDDD"
                                 mean_as_map     = correctRsin(mean_as_map,currentdate,'radiationCor',logger)
                             if variables[i]     == 'SurfaceAtmosphericPressure':
                                 mean_as_map     = correctPres(relevantDataFields, mean_as_map, highResDEM, resLowResDEM)
