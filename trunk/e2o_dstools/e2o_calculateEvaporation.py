@@ -659,6 +659,8 @@ def correctRsin(Rsin,currentdate,radiationCorDir,logger):
     resX, resY, cols, rows, x, y, cor, FillVal             = readMap((os.path.join(radiationCorDir,(getmapname(JULDAY,'COR')))),'PCRaster',logger)
     resX, resY, cols, rows, x, y, cordir, FillVal          = readMap((os.path.join(radiationCorDir,(getmapname(JULDAY,'CORDIR')))),'PCRaster',logger)
     #ratio direct - diffuse
+    flat[flat <0.00001] = 0.00001
+    flatdir[flatdir <0.00001] = 0.00001
     ratio           = flatdir / flat
     Rsin_dir        = ratio * Rsin
     #corrected Rsin direct for elevation and slope
