@@ -1017,7 +1017,7 @@ def main(argv=None):
         #get grid info
         resX, resY, cols, rows, highResLon, highResLat, data, FillVal = readMap((os.path.join('highResDEM','DEM.tif')),'GTiff',logger)
        
-        elevationCorrection, highResDEM, resLowResDEM = resampleDEM(FNhighResDEM,FNlowResDEM,logger)
+        elevationCorrection, highResDEM, resLowResDEM = resampleDEM('highResDEM','lowResDEM',logger)
 
     #Check whether evaporation should be calculated
     calculateEvap   = configget(logger,theconf,"selection","calculateEvap",calculateEvap)
