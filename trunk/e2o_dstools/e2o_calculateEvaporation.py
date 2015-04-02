@@ -646,6 +646,7 @@ def correctTemp(Temp,elevationCorrection):
 
 def correctRsin(Rsin,currentdate,radiationCorDir,logger):
     #get day of year
+    logger.info("Correcting incoming radiation with DEm...")
     tt  = currentdate.timetuple()
     JULDAY = tt.tm_yday
     #read data from radiation correction files
