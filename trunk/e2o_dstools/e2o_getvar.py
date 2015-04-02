@@ -332,41 +332,34 @@ def main(argv=None):
     logger = setlogger("e2o_getvar.log","e2o_getvar")
     logger.debug("Reading settings from in: " + inifile)
     theconf = iniFileSetUp("e2o_getvar.ini")
-    
-    #Add options for multiple variables
-    for i in range (0,len(variables)):
-        # Check whether variable exists in ini file
-        getDataForVar = configget(logger,theconf,"selection",variables[i],"False")
-       
-        # If variable is True read timeseries from file
-        if getDataForVar == 'True':
-            filename = filenames[i]
-            standard_name = standard_names[i]
+
 
     lonmax = float(configget(logger,theconf,"selection","lonmax",str(lonmax)))
     lonmin = float(configget(logger,theconf,"selection","lonmin",str(lonmin)))
     latmax = float(configget(logger,theconf,"selection","latmax",str(latmax)))
     latmin = float(configget(logger,theconf,"selection","latmin",str(latmin)))
-    BB = dict(
-           lon=[ lonmin, lonmax],
-           lat= [ latmin, latmax]
-           )
+
+    BB = dict( lon=[ lonmin, lonmax], lat= [ latmin, latmax])
+
     startyear = int(configget(logger,theconf,"selection","startyear",str(startyear)))
     endyear = int(configget(logger,theconf,"selection","endyear",str(endyear)))
     endmonth = int(configget(logger,theconf,"selection","endmonth",str(endmonth)))
     startmonth = int(configget(logger,theconf,"selection","startmonth",str(startmonth)))
-    standard_name = configget(logger,theconf,"selection","standard_name",standard_name)
     endday = int(configget(logger,theconf,"selection","endday",str(endday)))
     startday = int(configget(logger,theconf,"selection","startday",str(startday)))
     serverroot = configget(logger,theconf,"url","serverroot",serverroot)
     wrrsetroot = configget(logger,theconf,"url","wrrsetroot",wrrsetroot)
-    #variable = configget(logger,theconf,"url","variable",variable)
 
-    
+    oformat = configget(logger,theconf,"output","format","PCRaster")
+    oodir = configget(logger,theconf,"output","directory","output/")
+
+    oprefix = configget(logger,theconf,"output","prefix","E2O")
+    logger.info("Done reading settings.")
+
+
     #Add options for multiple variables
     for i in range (0,len(variables)):
         getDataForVar = False
-        print variables[i]
         # Check whether variable exists in ini file
         getDataForVar = configget(logger,theconf,"selection",variables[i],"False")
        
@@ -375,39 +368,13 @@ def main(argv=None):
             filename = filenames[i]
             standard_name = standard_names[i]
 
-            lonmax = float(configget(logger,theconf,"selection","lonmax",str(lonmax)))
-            lonmin = float(configget(logger,theconf,"selection","lonmin",str(lonmin)))
-            latmax = float(configget(logger,theconf,"selection","latmax",str(latmax)))
-            latmin = float(configget(logger,theconf,"selection","latmin",str(latmin)))
-            BB = dict(
-                   lon=[ lonmin, lonmax],
-                   lat= [ latmin, latmax]
-                   )
-            startyear = int(configget(logger,theconf,"selection","startyear",str(startyear)))
-            endyear = int(configget(logger,theconf,"selection","endyear",str(endyear)))
-            endmonth = int(configget(logger,theconf,"selection","endmonth",str(endmonth)))
-            startmonth = int(configget(logger,theconf,"selection","startmonth",str(startmonth)))
-            endday = int(configget(logger,theconf,"selection","endday",str(endday)))
-            startday = int(configget(logger,theconf,"selection","startday",str(startday)))
-            #serverroot = configget(logger,theconf,"url","serverroot",serverroot)
-            #wrrsetroot = configget(logger,theconf,"url","wrrsetroot",wrrsetroot)
-            #variable = configget(logger,theconf,"url","variable",variable)
-            
-            oformat = configget(logger,theconf,"output","format","PCRaster")
-            odir = configget(logger,theconf,"output","directory","output/")
-            odir = os.path.join(odir,variables[i])
-            oprefix = configget(logger,theconf,"output","prefix","E2O")
-            logger.debug("Done reading settings.")
-        
             start = datetime.datetime(startyear,startmonth,startday)
             end = datetime.datetime(endyear,endmonth,endday)
-           
-        
+            odir = os.path.join(oodir,variables[i])
             tlist, timelist = get_times_daily(start,end,serverroot, wrrsetroot, filename,logger )       
-            
+
             ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
 
-        
             #print unique(tlist.values())
             mstack = ncstepobj.getdates(timelist)
         
