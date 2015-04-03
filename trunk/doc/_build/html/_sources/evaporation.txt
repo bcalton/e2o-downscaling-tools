@@ -3,14 +3,9 @@ Potential evaporation
 
 
 
-
-
 Introduction
 ------------
 
-
-Downscaling
------------
 
 In general evaporation amounts are determined for about 90% by
 radiation input. Radiation at the earth’s surface is determined by
@@ -34,10 +29,21 @@ The figure below shows the steps used to generated down-scale reference evaporat
 
     dpi=69;
 
+ini file configuration
+----------------------
 
-How to use the maps generated to correct model incoming radiation from models or measurements
-=============================================================================================
+The .ini file below shows the available options
 
+.. literalinclude:: _download/e2o_calculateEvaporation.ini
+
+The file can be downloaded here: :download:`here. <_download/e2o_calculateEvaporation.ini>`
+
+
+Downscaling
+===========
+
+Radiation
+---------
 The paragraph below is adapted from the r.sun grass manual:
 
 The real-sky irradiance/irradiation are calculated from clear-sky raster maps by the
@@ -102,10 +108,23 @@ Consecutively, the raster maps of diffuse and beam components of the clear sky i
 where subscript s is meant to distinguish data measured on meteorological stations Bhs
 nd Dhs from the estimated values Bh, and Dh.
 
+Temperature
+-----------
+
+Temperature is downscaled using a fixed laps-rate.
+
+Pressure
+--------
+
+Pressure is downscaled .... PM
 
 
 Implementation
---------------
+==============
+
+
+
+
 
 .. automodule:: e2o_dstools.e2o_calculateEvaporation
     :members:

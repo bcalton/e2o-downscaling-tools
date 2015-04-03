@@ -32,7 +32,11 @@ The figure below shows the steps used to generated down-scale reference evaporat
 ini file configuration
 ----------------------
 
+The .ini file below shows the available options
+
 .. literalinclude:: _download/e2o_calculateEvaporation.ini
+
+The file can be downloaded here: :download:`here. <_download/e2o_calculateEvaporation.ini>`
 
 
 Downscaling
@@ -119,7 +123,7 @@ Implementation
 ==============
 
 
-An example ini file be found :download:`here. <_download/e2o_calculateEvaporation.ini>`
+
 
 
 .. automodule:: e2o_dstools.e2o_calculateEvaporation

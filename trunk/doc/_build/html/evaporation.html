@@ -55,13 +55,16 @@
   <ul>
 <li><a class="reference internal" href="#">Potential evaporation</a><ul>
 <li><a class="reference internal" href="#introduction">Introduction</a></li>
-<li><a class="reference internal" href="#downscaling">Downscaling</a></li>
+<li><a class="reference internal" href="#ini-file-configuration">ini file configuration</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#how-to-use-the-maps-generated-to-correct-model-incoming-radiation-from-models-or-measurements">How to use the maps generated to correct model incoming radiation from models or measurements</a><ul>
+<li><a class="reference internal" href="#downscaling">Downscaling</a><ul>
+<li><a class="reference internal" href="#radiation">Radiation</a></li>
+<li><a class="reference internal" href="#temperature">Temperature</a></li>
+<li><a class="reference internal" href="#pressure">Pressure</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#module-e2o_dstools.e2o_calculateEvaporation">Implementation</a></li>
-</ul>
-</li>
 </ul>
 
   <h4>Previous topic</h4>
@@ -100,9 +103,6 @@
 <h1>Potential evaporation<a class="headerlink" href="#potential-evaporation" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="downscaling">
-<h2>Downscaling<a class="headerlink" href="#downscaling" title="Permalink to this headline">¶</a></h2>
 <p>In general evaporation amounts are determined for about 90% by
 radiation input. Radiation at the earth’s surface is determined by
 the potential solar radiation at the edge of the earths atmosphere
@@ -125,9 +125,69 @@ dpi=69;
 }" />
 </p>
 </div>
+<div class="section" id="ini-file-configuration">
+<h2>ini file configuration<a class="headerlink" href="#ini-file-configuration" title="Permalink to this headline">¶</a></h2>
+<p>The .ini file below shows the available options</p>
+<div class="highlight-python"><div class="highlight"><pre>[url]
+# Server location and location of the WRR forcing
+serverroot = http://wci.earth2observe.eu/thredds/dodsC/
+wrrsetroot = ecmwf/met_forcing_v0/
+
+
+
+# What to do
+[selection]
+# Choose one of the three methods below
+evapMethod = PenmanMonteith
+#evapMethod = Hargreaves
+#evapMethod = PriestleyTaylor
+
+# Resampling = True -&gt; resample to resolution of dEM specified in downscaling section
+# Downscaling = True -&gt; also apply DEM based correctiosn of T, Radiation, Pressure
+resampling  = True
+downscaling = True
+
+# Specifye box to download from server. Should be a bit bigger that the DEM
+latmin = -90
+latmax = +90
+lonmin = -180
+lonmax = 180
+
+# Start and end-year, month and day of the evaporation calculations
+startyear = 1979
+endyear= 2012
+startmonth = 1
+endmonth = 12
+startday = 1
+endday = 31
+
+
+[downscaling]
+# Wher to fine the output of the e2o_radiation script
+radcordir=output_rad
+# location of original DEM (WFDEI) and the local high resolution DEM
+highResDEM=highresdem\DEM.tif
+lowResDEM=lowresdem\dem.tif
+
+
+[output]
+# Gdal output format string
+# See: http://www.gdal.org/formats_list.html
+# examples: AAIGrid, PCRaster, GTiff etc
+format=	GTiff
+directory=output/
+prefix=PET
+# Is saveall is true all variables used are saved instead of only the PET
+saveall=1
+</pre></div>
 </div>
-<div class="section" id="how-to-use-the-maps-generated-to-correct-model-incoming-radiation-from-models-or-measurements">
-<h1>How to use the maps generated to correct model incoming radiation from models or measurements<a class="headerlink" href="#how-to-use-the-maps-generated-to-correct-model-incoming-radiation-from-models-or-measurements" title="Permalink to this headline">¶</a></h1>
+<p>The file can be downloaded here: <a class="reference download internal" href="_downloads/e2o_calculateEvaporation.ini"><tt class="xref download docutils literal"><span class="pre">here.</span></tt></a></p>
+</div>
+</div>
+<div class="section" id="downscaling">
+<h1>Downscaling<a class="headerlink" href="#downscaling" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="radiation">
+<h2>Radiation<a class="headerlink" href="#radiation" title="Permalink to this headline">¶</a></h2>
 <p>The paragraph below is adapted from the r.sun grass manual:</p>
 <p>The real-sky irradiance/irradiation are calculated from clear-sky raster maps by the
 application of a factor parameterizing the attenuation of cloud cover. Examples of explicit
@@ -177,12 +237,22 @@ kdc = Dh/Dh
 kbc = Bh/Bhc"/></p>
 </div><p>where subscript s is meant to distinguish data measured on meteorological stations Bhs
 nd Dhs from the estimated values Bh, and Dh.</p>
+</div>
+<div class="section" id="temperature">
+<h2>Temperature<a class="headerlink" href="#temperature" title="Permalink to this headline">¶</a></h2>
+<p>Temperature is downscaled using a fixed laps-rate.</p>
+</div>
+<div class="section" id="pressure">
+<h2>Pressure<a class="headerlink" href="#pressure" title="Permalink to this headline">¶</a></h2>
+<p>Pressure is downscaled .... PM</p>
+</div>
+</div>
 <div class="section" id="module-e2o_dstools.e2o_calculateEvaporation">
-<span id="implementation"></span><h2>Implementation<a class="headerlink" href="#module-e2o_dstools.e2o_calculateEvaporation" title="Permalink to this headline">¶</a></h2>
-<p>Get a variable from the forcing data from the e2o server for a specific region and time range</p>
+<span id="implementation"></span><h1>Implementation<a class="headerlink" href="#module-e2o_dstools.e2o_calculateEvaporation" title="Permalink to this headline">¶</a></h1>
+<p>Determine downscaled reference evaporation from the eartH2Observe WFDEI forcing</p>
 <p>usage:</p>
 <blockquote>
-<div><p>e2o_getvar.py -I inifile</p>
+<div><p>e2o_calculateEvaporation.py -I inifile</p>
 <p>-I inifile - ini file with settings which data to get</p>
 </div></blockquote>
 <dl class="function">
@@ -414,7 +484,6 @@ Initialise with a list of netcdf files and a variable name (standard_name)</p>
 </ul>
 </dd></dl>
 
-</div>
 </div>
 
 
