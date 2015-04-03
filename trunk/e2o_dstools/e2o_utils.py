@@ -82,7 +82,6 @@ def configget(log,config,section,var,default):
     """
     
 
-    print var
     try:
         ret = config.get(section, var)
     except:

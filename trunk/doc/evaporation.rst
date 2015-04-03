@@ -29,6 +29,11 @@ The figure below shows the steps used to generated down-scale reference evaporat
 
     dpi=69;
 
+ini file configuration
+----------------------
+
+.. literalinclude:: _download/e2o_calculateEvaporation.ini
+
 
 Downscaling
 ===========
@@ -112,6 +117,10 @@ Pressure is downscaled .... PM
 
 Implementation
 ==============
+
+
+An example ini file be found :download:`here. <_download/e2o_calculateEvaporation.ini>`
+
 
 .. automodule:: e2o_dstools.e2o_calculateEvaporation
     :members:

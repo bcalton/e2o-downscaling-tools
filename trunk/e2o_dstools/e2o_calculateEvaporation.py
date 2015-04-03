@@ -1,12 +1,13 @@
 """
-Get a variable from the forcing data from the e2o server for a specific region and time range
+Determine downscaled reference evaporation from the eartH2Observe WFDEI forcing
 
 
 usage:
 
-    e2o_getvar.py -I inifile
+    e2o_calculateEvaporation.py -I inifile
 
     -I inifile - ini file with settings which data to get
+
 """
 
 import getopt, sys, os, netCDF4, glob
@@ -24,9 +25,7 @@ from scipy import interpolate
 import scipy.ndimage
 import shutil
 
-#pcr.setglobaloption("radians")
 
-#ncurl = "http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v0/1980/Tair_daily_E2OBS_198001.nc"
 
 def usage(*args):
     """
@@ -1047,6 +1046,7 @@ def main(argv=None):
     radcordir = configget(logger,theconf,"downscaling","radiationcordir","output_rad")
     FNhighResDEM = configget(logger,theconf,"downscaling","highResDEM","downscaledem.map")
     FNlowResDEM = configget(logger,theconf,"downscaling","lowResDEM","origdem.map")
+    saveAllData = int(configget(logger,theconf,"output","saveall","0"))
 
     # Check whether downscaling should be applied
     downscaling   = configget(logger,theconf,"selection","downscaling",downscaling)
@@ -1098,8 +1098,7 @@ def main(argv=None):
                         mean_as_map = mstack.mean(axis=0)
                         logger.info("Get data body...")
                         if downscaling == 'True':
-                            logger.info("Downscaling...")
-                            print variables[i]
+                            logger.info("Downscaling..." + variables[i])
                             save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,mean_as_map,int(ncnt),'temp',prefixes[i],oformat='GTiff')                     
                             mean_as_map = resample(FNhighResDEM,prefixes[i],int(ncnt),logger)
                             if variables[i]     == 'Temperature':
@@ -1162,6 +1161,22 @@ def main(argv=None):
                         
                     logger.info("Saving PM PET data for: " +str(currentdate))
                     save_as_mapsstack_per_day(lats,lons,PETmm,int(ncnt),odir,prefix=oprefix,oformat=oformat)
+                    if saveAllData:
+                        if downscaling == 'True':
+                            tmin = np.flipud(tmin)
+                            tmax = np.flipud(tmax)
+                            for i in range(0,6):
+                                relevantDataFields[i] = np.flipud(relevantDataFields[i])
+                        save_as_mapsstack_per_day(lats,lons,tmin,int(ncnt),odir,prefix='TMIN',oformat=oformat)
+                        save_as_mapsstack_per_day(lats,lons,tmax,int(ncnt),odir,prefix='TMAX',oformat=oformat)
+                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[1],int(ncnt),odir,prefix='RLIN',oformat=oformat)
+                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[2],int(ncnt),odir,prefix='PRESS',oformat=oformat)
+                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[3],int(ncnt),odir,prefix='REL',oformat=oformat)
+                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[4],int(ncnt),odir,prefix='RSIN',oformat=oformat)
+                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[5],int(ncnt),odir,prefix='WIN',oformat=oformat)
+                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[0],int(ncnt),odir,prefix='TEMP',oformat=oformat)
+
+
                   
             if evapMethod == 'PriestleyTaylor':
                 mapname = os.path.join(odir,getmapname(ncnt,oprefix))
