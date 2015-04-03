@@ -9,10 +9,6 @@ usage:
     -I inifile - ini file with settings which data to get
 """
 
-#TODO: Add local cache
-#TODO: Add tiling -> get small chunks
-#TODO: add caching
-
 import getopt, sys, os, netCDF4, glob
 import osgeo.gdal as gdal
 from osgeo.gdalconst import *
@@ -545,7 +541,14 @@ def save_as_gtiff(lat,lon,data,ncnt,directory,prefix,oformat='GTiff'):
     #print "saving map: " + os.path.join(directory,mapname)
     writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[:,:]),-999.0)
     
-def resampleDEM(folderHighResDEM, folderLowResDEM,logger):
+def resampleDEM(nameHighResDEM, nameLowResDEM,logger):
+    """
+
+    :param nameHighResDEM:
+    :param nameLowResDEM:
+    :param logger:
+    :return: elevationcorrection, hiresdem, upscaled_lowresdem
+    """
     
     #create temp dir
     try:
@@ -554,13 +557,13 @@ def resampleDEM(folderHighResDEM, folderLowResDEM,logger):
         os.mkdir('temp')
     
     # Source
-    src_filename    = os.path.join(folderLowResDEM,'DEM.tif')
+    src_filename    = nameLowResDEM
     src             = gdal.Open(src_filename, gdalconst.GA_ReadOnly)
     src_proj        = src.GetProjection()
     src_geotrans    = src.GetGeoTransform()
 
     # We want a section of source that matches this:
-    match_filename  = os.path.join(folderHighResDEM,'DEM.tif')
+    match_filename  = nameHighResDEM
     match_ds        = gdal.Open(match_filename, gdalconst.GA_ReadOnly)
     match_proj      = match_ds.GetProjection()
     match_geotrans  = match_ds.GetGeoTransform()
@@ -586,7 +589,15 @@ def resampleDEM(folderHighResDEM, folderLowResDEM,logger):
        
     return elevationCorrection, highResDEM, resLowResDEM
     
-def resample(highResFolder,prefix,ncnt,logger):
+def resample(highResdemname,prefix,ncnt,logger):
+    """
+
+    :param highResdemname:
+    :param prefix:
+    :param ncnt: map to resample
+    :param logger:
+    :return: resampled map
+    """
     
     #create resample dir
     try:
@@ -611,7 +622,7 @@ def resample(highResFolder,prefix,ncnt,logger):
     src_geotrans    = src.GetGeoTransform()
 
     # We want a section of source that matches this:
-    match_filename  = os.path.join(highResFolder,'DEM.tif')
+    match_filename  = highResdemname
     match_ds        = gdal.Open(match_filename, gdalconst.GA_ReadOnly)
     match_proj      = match_ds.GetProjection()
     match_geotrans  = match_ds.GetGeoTransform()
@@ -645,6 +656,15 @@ def correctTemp(Temp,elevationCorrection):
     return Temp_cor 
 
 def correctRsin(Rsin,currentdate,radiationCorDir,logger):
+    """
+    Corrects incoming radiation using the information from the e2o_radiation module
+
+    :param Rsin:
+    :param currentdate:
+    :param radiationCorDir:
+    :param logger:
+    :return:  corrected incoming radiation
+    """
     #get day of year
     logger.info("Correcting incoming radiation with DEM...")
     tt  = currentdate.timetuple()
@@ -670,16 +690,23 @@ def correctRsin(Rsin,currentdate,radiationCorDir,logger):
     return Rsin_cor
 
 def correctPres(relevantDataFields, Pressure, highResDEM, resLowResDEM):
-    
     """
+    Correction of air pressure for DEM based altitude correction based on barometric formula
+
+    :param relevantDataFields:
+    :param Pressure:
+    :param highResDEM:
+    :param resLowResDEM:
+    :return: corrected pressure
+
     relevantDataFields : ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
                     'NearSurfaceSpecificHumidity','SurfaceIncidentShortwaveRadiation','NearSurfaceWindSpeed']
     """
+    
+
     Tmean   =  relevantDataFields[0]
               
-    """
-    Correction of air pressure for DEM based altitude correction based on barometric formula
-    """
+
 
     g            = 9.81         # gravitational constant [m s-2]
     R_air        = 8.3144621    # specific gas constant for dry air [J mol-1 K-1]
@@ -693,11 +720,19 @@ def correctPres(relevantDataFields, Pressure, highResDEM, resLowResDEM):
     return Pres_cor
 
 def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin):
-    
     """
+
+    :param lat:
+    :param currentdate:
+    :param relevantDataFields:
+    :param Tmax:
+    :param Tmin:
+    :return:
+
     relevantDataFields : ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
                     'NearSurfaceSpecificHumidity','SurfaceIncidentShortwaveRadiation','NearSurfaceWindSpeed']
     """
+
     Tmean   =  relevantDataFields[0]
     Rlin    =  relevantDataFields[1]
     Pres    =  relevantDataFields[2]
@@ -973,7 +1008,7 @@ def main(argv=None):
             usage()
             exit()   
     try:
-        opts, args = getopt.getopt(argv, 'I:')
+        opts, args = getopt.getopt(argv, 'I:l:')
     except getopt.error, msg:
         usage(msg)
     
@@ -1017,9 +1052,9 @@ def main(argv=None):
     downscaling   = configget(logger,theconf,"selection","downscaling",downscaling)
     if downscaling == 'True':
         #get grid info
-        resX, resY, cols, rows, highResLon, highResLat, data, FillVal = readMap((os.path.join('highResDEM','DEM.tif')),'GTiff',logger)
+        resX, resY, cols, rows, highResLon, highResLat, data, FillVal = readMap(FNhighResDEM,'GTiff',logger)
        
-        elevationCorrection, highResDEM, resLowResDEM = resampleDEM('highResDEM','lowResDEM',logger)
+        elevationCorrection, highResDEM, resLowResDEM = resampleDEM(FNhighResDEM,FNlowResDEM,logger)
 
     #Check whether evaporation should be calculated
     calculateEvap   = configget(logger,theconf,"selection","calculateEvap",calculateEvap)
@@ -1066,7 +1101,7 @@ def main(argv=None):
                             logger.info("Downscaling...")
                             print variables[i]
                             save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,mean_as_map,int(ncnt),'temp',prefixes[i],oformat='GTiff')                     
-                            mean_as_map = resample('highResDEM',prefixes[i],int(ncnt),logger)
+                            mean_as_map = resample(FNhighResDEM,prefixes[i],int(ncnt),logger)
                             if variables[i]     == 'Temperature':
                                 mean_as_map     = correctTemp(mean_as_map,elevationCorrection)
                             if variables[i]     == 'SurfaceIncidentShortwaveRadiation':
@@ -1086,7 +1121,7 @@ def main(argv=None):
                                 LATITUDE[:,i]=LATITUDE[:,i]*latitude
                             if downscaling == 'True':    
                                 save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,LATITUDE,int(ncnt),'temp','lat',oformat=oformat)
-                                LATITUDE = resample('highResDEM','lat',int(ncnt),logger)
+                                LATITUDE = resample(FNhighResDEM,'lat',int(ncnt),logger)
                     
                             #assign longitudes and lattitudes grids
                             if downscaling == 'True':  
@@ -1115,8 +1150,8 @@ def main(argv=None):
                     if downscaling == 'True':
                         save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,tmin,int(ncnt),'temp','tmin',oformat=oformat)                     
                         save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,tmax,int(ncnt),'temp','tmax',oformat=oformat)                     
-                        tmin = resample('highResDEM','tmin',int(ncnt),logger)
-                        tmax = resample('highResDEM','tmax',int(ncnt),logger)    
+                        tmin = resample(FNhighResDEM,'tmin',int(ncnt),logger)
+                        tmax = resample(FNhighResDEM,'tmax',int(ncnt),logger)
                         tmin     = correctTemp(tmin,elevationCorrection)
                         tmax     = correctTemp(tmax,elevationCorrection)
                                                        
@@ -1146,8 +1181,8 @@ def main(argv=None):
                     if downscaling == 'True':
                         save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,tmin,int(ncnt),'temp','tmin',oformat=oformat)
                         save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,tmax,int(ncnt),'temp','tmax',oformat=oformat)
-                        tmin = resample('highResDEM','tmin',int(ncnt),logger)
-                        tmax = resample('highResDEM','tmax',int(ncnt),logger)   
+                        tmin = resample(FNhighResDEM,'tmin',int(ncnt),logger)
+                        tmax = resample(FNhighResDEM,'tmax',int(ncnt),logger)
                         tmin     = correctTemp(tmin,elevationCorrection)
                         tmax     = correctTemp(tmax,elevationCorrection)
                    
@@ -1180,8 +1215,8 @@ def main(argv=None):
                     if downscaling == 'True':
                         save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,tmin,int(ncnt),'temp','tmin',oformat=oformat)
                         save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,tmax,int(ncnt),'temp','tmax',oformat=oformat)
-                        tmin = resample('highResDEM','tmin',int(ncnt),logger)
-                        tmax = resample('highResDEM','tmax',int(ncnt),logger)  
+                        tmin = resample(FNhighResDEM,'tmin',int(ncnt),logger)
+                        tmax = resample(FNhighResDEM,'tmax',int(ncnt),logger)
                         tmin     = correctTemp(tmin,elevationCorrection)
                         tmax     = correctTemp(tmax,elevationCorrection)
                         
