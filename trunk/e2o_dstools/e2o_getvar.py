@@ -10,7 +10,6 @@ usage:
     -l loglevel (most be one of DEBUG, WARNING, ERROR)
 """
 
-#TODO: Make initial version
 
 import getopt, sys, os, netCDF4
 import osgeo.gdal as gdal
@@ -19,11 +18,6 @@ import datetime
 from numpy import *
 from e2o_utils import *
 
-
-
-
-
-#ncurl = "http://wci.earth2observe.eu/thredds/dodsC/ecmwf/met_forcing_v0/1980/Tair_daily_E2OBS_198001.nc"
 
 def usage(*args):
     """
@@ -274,10 +268,6 @@ class getstepdaily():
                  
 
 
-
-
- 
-
 def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaster"):
     """
     Save a data matrix (multiple times) as a stack of (pcraster) maps.
@@ -357,6 +347,7 @@ def main(argv=None):
     logger = setlogger("e2o_getvar.log","e2o_getvar",level=loglevel)
     logger.debug("Reading settings from in: " + inifile)
     theconf = iniFileSetUp("e2o_getvar.ini")
+    interpolmethod ='linear'
 
 
     lonmax = float(configget(logger,theconf,"selection","lonmax",str(lonmax)))
@@ -384,6 +375,10 @@ def main(argv=None):
     FNlowResDEM = configget(logger,theconf,"downscaling","lowResDEM","origdem.map")
     logger.debug("Done reading settings.")
 
+    if downscaling =='True':
+        resX, resY, cols, rows, xhires, yhires, hiresdem, FillVal = readMap(FNhighResDEM,'PCRaster',logger)
+        interpolmethod=configget(logger,theconf,"downscaling","interpolmethod",interpolmethod)
+
 
     #Add options for multiple variables
     for i in range (0,len(variables)):
@@ -399,6 +394,8 @@ def main(argv=None):
             start = datetime.datetime(startyear,startmonth,startday)
             end = datetime.datetime(endyear,endmonth,endday)
             odir = os.path.join(oodir,variables[i])
+            if not os.path.exists(odir):
+                os.makedirs(odir)
             tlist, timelist = get_times_daily(start,end,serverroot, wrrsetroot, filename,logger )       
 
             ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
@@ -410,7 +407,24 @@ def main(argv=None):
             mean_as_map = mstack.mean(axis=0)
             
             logger.info("Saving " + ncstepobj.varname + " to mapstack " + odir + oprefix)
-            save_as_mapsstack(ncstepobj.lat,ncstepobj.lon,mstack,timelist,odir,prefix=oprefix,oformat=oformat)  
+
+
+            cnt = 0
+            for a in timelist:
+                mapname = getmapname(cnt+1,oprefix)
+                print ncstepobj.lon
+                print ncstepobj.lat
+                print yhires
+
+                if downscaling =="True":
+                    newdata = resample_grid(flipud(mstack[cnt,:,:]),ncstepobj.lon,ncstepobj.lat, xhires,yhires,method=interpolmethod)
+                    writeMap(os.path.join(odir,mapname),oformat,xhires,yhires,newdata,-999.0)
+                else:
+                    writeMap(os.path.join(odir,mapname),oformat,ncstepobj.lon,ncstepobj.lat[::-1],flipud(mstack[cnt,:,:]),-999.0)
+
+
+                cnt = cnt + 1
+                #save_as_mapsstack(ncstepobj.lat,ncstepobj.lon,mstack,timelist,odir,prefix=oprefix,oformat=oformat)
 
     logger.info("Done.")
 

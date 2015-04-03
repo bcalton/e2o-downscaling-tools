@@ -16,8 +16,14 @@ import sys
 
 def readMap(fileName, fileFormat,logger):
     """
-    Read geographical file into memory
+    ead geographical file into memory
+
+    :param fileName: Name of the file to read
+    :param fileFormat: Gdal format string
+    :param logger: logger object
+    :return: resX, resY, cols, rows, x, y, data, FillVal
     """
+
 
     #Open file for binary-reading
 
@@ -219,6 +225,7 @@ def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest'):
     :param Xout: X-coordinates of all columns in the new map (e.g. from readMap)
     :param Yout: Y-coordinates of all columns in the new map (e.g. from readMap)
     :param method: linear, nearest, cubic, quintic
+
     :return: datablock of new grid.
     """
     
@@ -226,25 +233,22 @@ def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest'):
     # we need to sort the y data (must be ascending)
     # and thus flip the image
     Yin.sort()
-    # define interpolator
+    # define interpolatoreipyth
     if method in 'nearest linear':
-        interobj = interpolate.RegularGridInterpolator((Yin,Xin), flipud(gridZ_in), method=method ,bounds_error=False)
+        interobj = interpolate.RegularGridInterpolator((Yin,Xin), flipud(gridZ_in), method=method ,bounds_error=False,fill_value=float32(0.0))
         _x, _y = meshgrid(Xout, Yout)
         yx_outpoints = transpose([_y.flatten(), _x.flatten()])
 
         # interpolate
         res = interobj(yx_outpoints)
-    else:
+    elif method in 'cubic quintic':
         interobj = interpolate.interp2d(Xin, Yin, gridZ_in,  kind=method, bounds_error=False)
         res = interobj(Xout, Yout)
-
-    # make all combinations of X,Y so we can supply the grid as a list of x,y coordinates
-
+    else:
+        raise ValueError("Interpolation method " + method + " not known.")
 
     #reshape to the new grid
     result = reshape(res, (len(Yout), len(Xout)))
     result[isnan(result)] = 1E31
     
     return result
-
-
