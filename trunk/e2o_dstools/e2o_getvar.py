@@ -4,9 +4,10 @@ Get a variable from the forcing data from the e2o server for a specific region a
 
 usage:
 
-    e2o_getvar.py -I inifile
+    e2o_getvar.py -I inifile [-l loglevel]
 
     -I inifile - ini file with settings which data to get
+    -l loglevel (most be one of DEBUG, WARNING, ERROR)
 """
 
 #TODO: Make initial version
@@ -129,7 +130,16 @@ class ncdatset():
 def get_times_daily(startdate,enddate, serverroot, wrrsetroot, variable,logger):
     """
     generate a dictionary with date/times and the NC files in which the data resides
+
+    :param startdate:
+    :param enddate:
+    :param serverroot:
+    :param wrrsetroot:
+    :param variable:
+    :param logger:
+    :return:
     """
+
 
     numdays = enddate - startdate
     dateList = []
@@ -202,7 +212,7 @@ class getstepdaily():
 
     def getdates(self,alldates):
         """
-        Does not work yet
+
         """
         lat = None
         lon = None
@@ -268,7 +278,19 @@ class getstepdaily():
 
  
 
-def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaster"):        
+def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaster"):
+    """
+    Save a data matrix (multiple times) as a stack of (pcraster) maps.
+
+    :param lat:
+    :param lon:
+    :param data:
+    :param times:
+    :param directory:
+    :param prefix:
+    :param oformat:
+    :return:
+    """
     
     cnt = 0
     if not os.path.exists(directory):
@@ -312,6 +334,8 @@ def main(argv=None):
     startday = 1
     endday = 1
     getDataForVar = False
+    loglevel=logging.DEBUG
+    downscaling = "False"
     
 
     if argv is None:
@@ -321,15 +345,16 @@ def main(argv=None):
             return
 
     try:
-        opts, args = getopt.getopt(argv, 'I:')
+        opts, args = getopt.getopt(argv, 'I:l:')
     except getopt.error, msg:
         usage(msg)
 
     for o, a in opts:
         if o == '-I': inifile = a
+        if o == '-l': exec "loglevel = logging." + a
 
 
-    logger = setlogger("e2o_getvar.log","e2o_getvar")
+    logger = setlogger("e2o_getvar.log","e2o_getvar",level=loglevel)
     logger.debug("Reading settings from in: " + inifile)
     theconf = iniFileSetUp("e2o_getvar.ini")
 
@@ -352,9 +377,12 @@ def main(argv=None):
 
     oformat = configget(logger,theconf,"output","format","PCRaster")
     oodir = configget(logger,theconf,"output","directory","output/")
-
     oprefix = configget(logger,theconf,"output","prefix","E2O")
-    logger.info("Done reading settings.")
+
+    downscaling  = configget(logger,theconf,"selection","downscaling",downscaling)
+    FNhighResDEM = configget(logger,theconf,"downscaling","highResDEM","downscaledem.map")
+    FNlowResDEM = configget(logger,theconf,"downscaling","lowResDEM","origdem.map")
+    logger.debug("Done reading settings.")
 
 
     #Add options for multiple variables

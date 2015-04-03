@@ -4,12 +4,48 @@ Created on Mon Jul 21 07:36:06 2014
 
 @author: schelle
 """
-import osgeo.gdal as gdal
-from osgeo.gdalconst import *
+
+from osgeo import gdal, gdalconst
 import logging
 import logging.handlers
 import ConfigParser
 import os
+from numpy import *
+import sys
+
+
+def readMap(fileName, fileFormat,logger):
+    """
+    Read geographical file into memory
+    """
+
+    #Open file for binary-reading
+
+    mapFormat = gdal.GetDriverByName(fileFormat)
+    mapFormat.Register()
+    ds = gdal.Open(fileName)
+    if ds is None:
+        logger.error('Could not open ' + fileName + '. Something went wrong!! Shutting down')
+        sys.exit(1)
+    # Retrieve geoTransform info
+    geotrans = ds.GetGeoTransform()
+    originX = geotrans[0]
+    originY = geotrans[3]
+    resX    = geotrans[1]
+    resY    = geotrans[5]
+    cols = ds.RasterXSize
+    rows = ds.RasterYSize
+    x = linspace(originX+resX/2,originX+resX/2+resX*(cols-1),cols)
+    y = linspace(originY+resY/2,originY+resY/2+resY*(rows-1),rows)
+    # Retrieve raster
+    RasterBand = ds.GetRasterBand(1) # there's only 1 band, starting from 1
+    data = RasterBand.ReadAsArray(0,0,cols,rows)
+    FillVal = RasterBand.GetNoDataValue()
+    RasterBand = None
+    del ds
+    return resX, resY, cols, rows, x, y, data, FillVal
+
+
 
 def getmapname(number,prefix):
     """
@@ -169,4 +205,46 @@ def closeLogger(logger, ch):
     ch.flush()
     ch.close()
     return logger, ch
+
+
+
+def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest'):
+    """
+    Resample a regular grid be supplyin original and new x, y row,col coordinates
+    Missing values is set to 1E31, the PCRaster standard
+
+    :param gridZ_in: datablock of original data (e.g. from readMap)
+    :param Xin: X-coordinates of all columns (e.g. from readMap)
+    :param Yin: Y-coordinates of all columns (e.g. from readMap)
+    :param Xout: X-coordinates of all columns in the new map (e.g. from readMap)
+    :param Yout: Y-coordinates of all columns in the new map (e.g. from readMap)
+    :param method: linear, nearest, cubic, quintic
+    :return: datablock of new grid.
+    """
+    
+    from scipy import interpolate
+    # we need to sort the y data (must be ascending)
+    # and thus flip the image
+    Yin.sort()
+    # define interpolator
+    if method in 'nearest linear':
+        interobj = interpolate.RegularGridInterpolator((Yin,Xin), flipud(gridZ_in), method=method ,bounds_error=False)
+        _x, _y = meshgrid(Xout, Yout)
+        yx_outpoints = transpose([_y.flatten(), _x.flatten()])
+
+        # interpolate
+        res = interobj(yx_outpoints)
+    else:
+        interobj = interpolate.interp2d(Xin, Yin, gridZ_in,  kind=method, bounds_error=False)
+        res = interobj(Xout, Yout)
+
+    # make all combinations of X,Y so we can supply the grid as a list of x,y coordinates
+
+
+    #reshape to the new grid
+    result = reshape(res, (len(Yout), len(Xout)))
+    result[isnan(result)] = 1E31
+    
+    return result
+
 

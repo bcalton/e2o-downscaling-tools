@@ -125,36 +125,7 @@ class ncdatset():
 
         return None
 
-def readMap(fileName, fileFormat,logger):
-    """
-    Read geographical file into memory
-    """
-  
-    #Open file for binary-reading
 
-    mapFormat = gdal.GetDriverByName(fileFormat)
-    mapFormat.Register()
-    ds = gdal.Open(fileName)
-    if ds is None:
-        logger.error('Could not open ' + fileName + '. Something went wrong!! Shutting down')
-        sys.exit(1)
-    # Retrieve geoTransform info
-    geotrans = ds.GetGeoTransform()
-    originX = geotrans[0]
-    originY = geotrans[3]
-    resX    = geotrans[1]
-    resY    = geotrans[5]
-    cols = ds.RasterXSize
-    rows = ds.RasterYSize
-    x = linspace(originX+resX/2,originX+resX/2+resX*(cols-1),cols)
-    y = linspace(originY+resY/2,originY+resY/2+resY*(rows-1),rows)
-    # Retrieve raster
-    RasterBand = ds.GetRasterBand(1) # there's only 1 band, starting from 1
-    data = RasterBand.ReadAsArray(0,0,cols,rows)
-    FillVal = RasterBand.GetNoDataValue()
-    RasterBand = None
-    del ds
-    return resX, resY, cols, rows, x, y, data, FillVal
 
 def get_times_daily(startdate,enddate, serverroot, wrrsetroot, filename,logger):
     """
@@ -539,7 +510,65 @@ def save_as_gtiff(lat,lon,data,ncnt,directory,prefix,oformat='GTiff'):
     mapname = prefix + '.tif'
     #print "saving map: " + os.path.join(directory,mapname)
     writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[:,:]),-999.0)
-    
+
+
+def resample(highResdemname,prefix,ncnt,logger):
+    """
+
+    :param highResdemname:
+    :param prefix:
+    :param ncnt: map to resample
+    :param logger:
+    :return: resampled map
+    """
+
+    #create resample dir
+    try:
+        os.stat('resampled')
+    except:
+        os.mkdir('resampled')
+
+    tif_mapname         = prefix+'.tif'
+    pcraster_mapname    = getmapname(ncnt,prefix)
+
+    tif_filename        = os.path.join('temp',tif_mapname)
+    pcraster_filename   = os.path.join('temp',pcraster_mapname)
+    pcraster_resFilename   = os.path.join('resampled',pcraster_mapname)
+
+    command= 'gdal_translate -of %s %s %s' % ('GTiff',pcraster_filename,tif_filename)
+    os.system(command)
+
+    # Source
+    src_filename    = os.path.join('temp',tif_mapname)
+    src             = gdal.Open(src_filename, gdalconst.GA_ReadOnly)
+    src_proj        = src.GetProjection()
+    src_geotrans    = src.GetGeoTransform()
+
+    # We want a section of source that matches this:
+    match_filename  = highResdemname
+    match_ds        = gdal.Open(match_filename, gdalconst.GA_ReadOnly)
+    match_proj      = match_ds.GetProjection()
+    match_geotrans  = match_ds.GetGeoTransform()
+    wide            = match_ds.RasterXSize
+    high            = match_ds.RasterYSize
+
+    # Output / destination
+    dst_filename = os.path.join('resampled',tif_mapname)
+    dst = gdal.GetDriverByName('GTiff').Create(dst_filename, wide, high, 1, gdalconst.GDT_Float32)
+    dst.SetGeoTransform( match_geotrans )
+    dst.SetProjection( match_proj)
+
+    # Do the work
+    gdal.ReprojectImage(src, dst, src_proj, match_proj, gdalconst.GRA_NearestNeighbour)
+
+    del dst # Flush
+
+    resX, resY, cols, rows, x, y, data, FillVal = readMap(dst_filename,'GTiff',logger)
+
+    # nodig?? data    = np.flipud(dataUD)
+
+    return data
+
 def resampleDEM(nameHighResDEM, nameLowResDEM,logger):
     """
 
