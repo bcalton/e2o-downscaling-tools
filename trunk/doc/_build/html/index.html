@@ -51,8 +51,14 @@
   <ul>
 <li><a class="reference internal" href="#">eartH2Observe Downscaling tools</a><ul>
 <li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#usage">Usage</a><ul>
+<li><a class="reference internal" href="#pet-determination-and-downscaling">PET Determination and downscaling</a></li>
+<li><a class="reference internal" href="#retrieving-variables">Retrieving variables</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#the-radiation-module">The radiation module</a></li>
 <li><a class="reference internal" href="#the-evaporation-module">The evaporation module</a></li>
+<li><a class="reference internal" href="#the-e2o-getvar-script">The e2o_getvar script</a></li>
 <li><a class="reference internal" href="#examples-and-tests">Examples and tests</a></li>
 <li><a class="reference internal" href="#faq">FAQ</a></li>
 <li><a class="reference internal" href="#release-notes">Release notes</a></li>
@@ -96,7 +102,7 @@
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This documentation is for version 0.1 of e2o_dstools, release 2015
-This documentation was generated February 09, 2015</p>
+This documentation was generated April 03, 2015</p>
 </div>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
@@ -106,18 +112,27 @@ can connect directly to the project&#8217;s data server and save (resampled) dat
 for further analysis or direct application. The current first versions
 of the tool focusses on downscaling the global forcing dataset used in
 the project <a class="reference internal" href="#weedonwfdei2014" id="id1">[WBB+14]</a>.</p>
-<p>The figure below shows the steps used to generated down-scale reference evaporation.</p>
-<p class="graphviz">
-<img src="_images/graphviz-67ae8ed1ed2f76e46d72b8f60540290d4d7df18e.png" alt="digraph steps {
-&quot;Clear sky radiation maps&quot; [shape=box];
-&quot;Reference evaporation&quot; [shape=box];
-&quot;e2o_radiation.py&quot; -&gt; &quot;Clear sky radiation maps&quot; [label =&quot; Correct for aspect and slope with DEM&quot;];
- &quot;e2o_calculateEvaporation.py&quot; -&gt; &quot;Reference evaporation&quot; [label =&quot; Downscale using DEM and clear-sky maps&quot;]
-&quot;Clear sky radiation maps&quot; -&gt; &quot;e2o_calculateEvaporation.py&quot;
-
-dpi=69;
-}" />
-</p>
+</div>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="pet-determination-and-downscaling">
+<h3>PET Determination and downscaling<a class="headerlink" href="#pet-determination-and-downscaling" title="Permalink to this headline">¶</a></h3>
+<p>The tools assume you have a digital elevation model fo3 your area. This file should be in
+a GDAL supported format (preferably GTiff).</p>
+<ul class="simple">
+<li>Optionally, first run the e2o_radiation script. This will generate Clear-Sky radiation maps for each day of the
+year (four maps per day). These maps can be used by the e2o_calculateEvaportion script to downscalle
+reference ET</li>
+<li>Next run the e2o_calculateEvaporation script. This will calculate downscaled ET based on a local DEM for
+the priod you specify in the .ini file</li>
+</ul>
+<p>See the documentation per module for more information.</p>
+</div>
+<div class="section" id="retrieving-variables">
+<h3>Retrieving variables<a class="headerlink" href="#retrieving-variables" title="Permalink to this headline">¶</a></h3>
+<p>The e2o_getvar script allows you to retrieve single or multiple variable from the e2o server fro
+a specified region and timespan.</p>
+</div>
 </div>
 <div class="section" id="the-radiation-module">
 <h2>The radiation module<a class="headerlink" href="#the-radiation-module" title="Permalink to this headline">¶</a></h2>
@@ -125,12 +140,14 @@ dpi=69;
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation correction on a digital elevation model</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="radiation.html#introduction">Introduction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html#usage">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html#module-e2o_dstools.e2o_radiation">Implementation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="radiation.html#description">Description</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="radiation.html#how-to-use-the-maps-generated-to-correct-model-incoming-radiation-from-models-or-measurements">How to use the maps generated to correct model incoming radiation from models or measurements</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html#example">Example</a></li>
-<li class="toctree-l1"><a class="reference internal" href="radiation.html#module-e2o_dstools.e2o_radiation">Implementation</a></li>
 </ul>
 </div>
 </div>
@@ -140,9 +157,24 @@ dpi=69;
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="evaporation.html">Potential evaporation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="evaporation.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaporation.html#downscaling">Downscaling</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="evaporation.html#module-e2o_dstools.e2o_calculateEvaporation">Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaporation.html#how-to-use-the-maps-generated-to-correct-model-incoming-radiation-from-models-or-measurements">How to use the maps generated to correct model incoming radiation from models or measurements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="evaporation.html#module-e2o_dstools.e2o_calculateEvaporation">Implementation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="the-e2o-getvar-script">
+<h2>The e2o_getvar script<a class="headerlink" href="#the-e2o-getvar-script" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="e2o_getvar.html">e2o_getvar - retrieve variables</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="e2o_getvar.html#module-e2o_dstools.e2o_getvar">Implementation</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>

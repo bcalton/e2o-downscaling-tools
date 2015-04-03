@@ -17,18 +17,29 @@ of the tool focusses on downscaling the global forcing dataset used in
 the project :cite:`weedonwfdei2014`.
 
 
-The figure below shows the steps used to generated down-scale reference evaporation.
 
-.. digraph:: steps
+Usage
+=====
 
-    "Clear sky radiation maps" [shape=box];    
-    "Reference evaporation" [shape=box];    
-    "e2o_radiation.py" -> "Clear sky radiation maps" [label =" Correct for aspect and slope with DEM"];
-     "e2o_calculateEvaporation.py" -> "Reference evaporation" [label =" Downscale using DEM and clear-sky maps"]
-    "Clear sky radiation maps" -> "e2o_calculateEvaporation.py"
+PET Determination and downscaling
+---------------------------------
 
-    dpi=69;
+The tools assume you have a digital elevation model fo3 your area. This file should be in
+a GDAL supported format (preferably GTiff).
 
++ Optionally, first run the e2o_radiation script. This will generate Clear-Sky radiation maps for each day of the
+  year (four maps per day). These maps can be used by the e2o_calculateEvaportion script to downscalle
+  reference ET
++ Next run the e2o_calculateEvaporation script. This will calculate downscaled ET based on a local DEM for
+  the priod you specify in the .ini file
+
+See the documentation per module for more information.
+
+
+Retrieving variables
+--------------------
+The e2o_getvar script allows you to retrieve single or multiple variable from the e2o server fro
+a specified region and timespan.
 
 The radiation module
 ====================
@@ -44,7 +55,14 @@ The evaporation module
 
    evaporation
 
-   
+
+The e2o_getvar script
+=====================
+.. toctree::
+   :maxdepth: 2
+
+   e2o_getvar
+
 Examples and tests
 ==================
 .. toctree::

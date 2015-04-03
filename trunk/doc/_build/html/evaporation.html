@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="e2o_dstools 2015 documentation" href="index.html" />
-    <link rel="next" title="Questions and answers" href="faq.html" />
+    <link rel="next" title="e2o_getvar - retrieve variables" href="e2o_getvar.html" />
     <link rel="prev" title="Radiation correction on a digital elevation model" href="radiation.html" /> 
   </head>
   <body>
@@ -38,7 +38,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="faq.html" title="Questions and answers"
+          <a href="e2o_getvar.html" title="e2o_getvar - retrieve variables"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="radiation.html" title="Radiation correction on a digital elevation model"
@@ -55,17 +55,21 @@
   <ul>
 <li><a class="reference internal" href="#">Potential evaporation</a><ul>
 <li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#downscaling">Downscaling</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#how-to-use-the-maps-generated-to-correct-model-incoming-radiation-from-models-or-measurements">How to use the maps generated to correct model incoming radiation from models or measurements</a><ul>
 <li><a class="reference internal" href="#module-e2o_dstools.e2o_calculateEvaporation">Implementation</a></li>
+</ul>
+</li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="radiation.html"
                         title="previous chapter">Radiation correction on a digital elevation model</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="faq.html"
-                        title="next chapter">Questions and answers</a></p>
+  <p class="topless"><a href="e2o_getvar.html"
+                        title="next chapter">e2o_getvar - retrieve variables</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/evaporation.txt"
@@ -97,9 +101,84 @@
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 </div>
+<div class="section" id="downscaling">
+<h2>Downscaling<a class="headerlink" href="#downscaling" title="Permalink to this headline">¶</a></h2>
+<p>In general evaporation amounts are determined for about 90% by
+radiation input. Radiation at the earth’s surface is determined by
+the potential solar radiation at the edge of the earths atmosphere
+and the filtering within the atmosphere. The first component can be
+easily determined from equations. The reduction due to clouds etc
+can be estimated by incorporation short wave measurements but if
+these are not available cloud cover estimates can also be used. By
+combining this with a DEM radiation at the earths surface can be
+determined including the effects of aspect and shading.</p>
+<p>The figure below shows the steps used to generated down-scale reference evaporation.</p>
+<p class="graphviz">
+<img src="_images/graphviz-67ae8ed1ed2f76e46d72b8f60540290d4d7df18e.png" alt="digraph steps {
+&quot;Clear sky radiation maps&quot; [shape=box];
+&quot;Reference evaporation&quot; [shape=box];
+&quot;e2o_radiation.py&quot; -&gt; &quot;Clear sky radiation maps&quot; [label =&quot; Correct for aspect and slope with DEM&quot;];
+ &quot;e2o_calculateEvaporation.py&quot; -&gt; &quot;Reference evaporation&quot; [label =&quot; Downscale using DEM and clear-sky maps&quot;]
+&quot;Clear sky radiation maps&quot; -&gt; &quot;e2o_calculateEvaporation.py&quot;
+
+dpi=69;
+}" />
+</p>
 </div>
+</div>
+<div class="section" id="how-to-use-the-maps-generated-to-correct-model-incoming-radiation-from-models-or-measurements">
+<h1>How to use the maps generated to correct model incoming radiation from models or measurements<a class="headerlink" href="#how-to-use-the-maps-generated-to-correct-model-incoming-radiation-from-models-or-measurements" title="Permalink to this headline">¶</a></h1>
+<p>The paragraph below is adapted from the r.sun grass manual:</p>
+<p>The real-sky irradiance/irradiation are calculated from clear-sky raster maps by the
+application of a factor parameterizing the attenuation of cloud cover. Examples of explicit
+calculations of this parameter can be found in Becker (2001), Kitler and Mikler (1986). However, the cloudiness
+observation by a meteorological service routine is usually prone to subjective errors and does
+not describe sufficiently the physical nature and dynamic spatial-temporal pattern of different
+types of cloud cover. Therefore, a simpler parameter has to be used. The solutions for horizontal
+and inclined surfaces are slightly different. For the assessment of global irradiance/irradiation
+on a horizontal surface under overcast conditions Gh the clear-sky values Ghc are multiplied by
+clear-sky index kc (Beyer et al 1996, Hammer et al 1998, Rigollier et al. 2001):</p>
+<div class="math">
+<p><img src="_images/math/051f3311e2ef662e0c39ca8f34106fadb506b115.png" alt="Gh = Ghc kc"/></p>
+</div><p>The index kc represents the atmospheric transmission expressed as a ratio between horizontal
+global radiation under overcast and clear-sky conditions. For a set of ground meteorological
+stations the clear-sky index can be calculated from measured global radiation Ghs and
+computed values of clear-sky global radiation Ghc:</p>
+<div class="math">
+<p><img src="_images/math/5bfa7e9d5549bf64fb073b37374894bf81e1e36b.png" alt="kc = Ghs/Ghc"/></p>
+</div><p>As an alternative the kc can be derived also from other climatologic data
+(e.g. cloudiness, cf. Kasten and Czeplak 1980). The raster maps of kc must be
+then derived by spatial interpolation. The kc can be calculated directly as a raster map from
+short-wave surface irradiance measured by satellites. This method is based on the complementarity
+between the planetary albedo recorded by the radiometer and the surface radiant flux
+(Cano et al 1986, Beyer et al 1996, Hammer et al 1998).
+To compute the overcast global irradiance/irradiation for inclined surfaces, Gi
+the diffuse Dh and beam Bh components of overcast global radiation and of the clear-sky index kc
+have to be treated separately as follows from the following equations:</p>
+<div class="math">
+<p><img src="_images/math/cc4dc4034b12f05def688b6ee4a03eab925d40d9.png" alt="Dh = Dhc kdc
+
+Bh = Bhc kbc"/></p>
+</div><p>The ratio of diffuse to the global radiation Dh/Gh for clear and overcast skies changes
+according to the cloudiness. In Europe the Dh/Gh values are typically in interval 0.3-1.0
+(Kasten and Czeplak 1980). The underlying physical processes are quite complicated and computationally
+represented only by empirical equations (cf. Scharmer and Greif, 2000, Kasten and Czeplak 1980, Hrvoľ 1991).
+However, for many meteorological stations, besides the global horizontal radiation Ghs, the diffuse component
+Dhs is either measured or calculated from cloudiness, sunshine or other climatologic data.
+The raster map of Dhs/Ghs can be derived from the point values by spatial interpolation.
+Consecutively, the raster maps of diffuse and beam components of the clear sky index can be computed:</p>
+<div class="math">
+<p><img src="_images/math/fe8cb820be217279029848f9b68285b98e82216b.png" alt="Dh = Gh Dhs/Ghs
+
+Bh = Gh – Dh
+
+kdc = Dh/Dh
+
+kbc = Bh/Bhc"/></p>
+</div><p>where subscript s is meant to distinguish data measured on meteorological stations Bhs
+nd Dhs from the estimated values Bh, and Dh.</p>
 <div class="section" id="module-e2o_dstools.e2o_calculateEvaporation">
-<span id="implementation"></span><h1>Implementation<a class="headerlink" href="#module-e2o_dstools.e2o_calculateEvaporation" title="Permalink to this headline">¶</a></h1>
+<span id="implementation"></span><h2>Implementation<a class="headerlink" href="#module-e2o_dstools.e2o_calculateEvaporation" title="Permalink to this headline">¶</a></h2>
 <p>Get a variable from the forcing data from the e2o server for a specific region and time range</p>
 <p>usage:</p>
 <blockquote>
@@ -108,14 +187,79 @@
 </div></blockquote>
 <dl class="function">
 <dt id="e2o_dstools.e2o_calculateEvaporation.PenmanMonteith">
-<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">PenmanMonteith</tt><big>(</big><em>lat</em>, <em>currentdate</em>, <em>relevantDataFields</em>, <em>Tmax</em>, <em>Tmin</em>, <em>elevationCorrection</em>, <em>highResDEM</em>, <em>resLowResDEM</em>, <em>downscaling</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.PenmanMonteith" title="Permalink to this definition">¶</a></dt>
-<dd><p>relevantDataFields : [&#8216;Temperature&#8217;,&#8217;DownwellingLongWaveRadiation&#8217;,&#8217;SurfaceAtmosphericPressure&#8217;,                    &#8216;NearSurfaceSpecificHumidity&#8217;,&#8217;SurfaceIncidentShortwaveRadiation&#8217;,&#8217;NearSurfaceWindSpeed&#8217;]</p>
+<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">PenmanMonteith</tt><big>(</big><em>lat</em>, <em>currentdate</em>, <em>relevantDataFields</em>, <em>Tmax</em>, <em>Tmin</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.PenmanMonteith" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lat</strong> &#8211; </li>
+<li><strong>currentdate</strong> &#8211; </li>
+<li><strong>relevantDataFields</strong> &#8211; </li>
+<li><strong>Tmax</strong> &#8211; </li>
+<li><strong>Tmin</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>relevantDataFields : [&#8216;Temperature&#8217;,&#8217;DownwellingLongWaveRadiation&#8217;,&#8217;SurfaceAtmosphericPressure&#8217;,                    &#8216;NearSurfaceSpecificHumidity&#8217;,&#8217;SurfaceIncidentShortwaveRadiation&#8217;,&#8217;NearSurfaceWindSpeed&#8217;]</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="e2o_dstools.e2o_calculateEvaporation.PriestleyTaylor">
-<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">PriestleyTaylor</tt><big>(</big><em>lat</em>, <em>currentdate</em>, <em>relevantDataFields</em>, <em>Tmax</em>, <em>Tmin</em>, <em>elevationCorrection</em>, <em>highResDEM</em>, <em>resLowResDEM</em>, <em>downscaling</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.PriestleyTaylor" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">PriestleyTaylor</tt><big>(</big><em>lat</em>, <em>currentdate</em>, <em>relevantDataFields</em>, <em>Tmax</em>, <em>Tmin</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.PriestleyTaylor" title="Permalink to this definition">¶</a></dt>
 <dd><p>relevantDataFields : [&#8216;Temperature&#8217;,&#8217;DownwellingLongWaveRadiation&#8217;,&#8217;SurfaceAtmosphericPressure&#8217;,                    &#8216;NearSurfaceSpecificHumidity&#8217;,&#8217;SurfaceIncidentShortwaveRadiation&#8217;,&#8217;NearSurfaceWindSpeed&#8217;]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="e2o_dstools.e2o_calculateEvaporation.correctPres">
+<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">correctPres</tt><big>(</big><em>relevantDataFields</em>, <em>Pressure</em>, <em>highResDEM</em>, <em>resLowResDEM</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.correctPres" title="Permalink to this definition">¶</a></dt>
+<dd><p>Correction of air pressure for DEM based altitude correction based on barometric formula</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>relevantDataFields</strong> &#8211; </li>
+<li><strong>Pressure</strong> &#8211; </li>
+<li><strong>highResDEM</strong> &#8211; </li>
+<li><strong>resLowResDEM</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">corrected pressure</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>relevantDataFields : [&#8216;Temperature&#8217;,&#8217;DownwellingLongWaveRadiation&#8217;,&#8217;SurfaceAtmosphericPressure&#8217;,                    &#8216;NearSurfaceSpecificHumidity&#8217;,&#8217;SurfaceIncidentShortwaveRadiation&#8217;,&#8217;NearSurfaceWindSpeed&#8217;]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="e2o_dstools.e2o_calculateEvaporation.correctRsin">
+<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">correctRsin</tt><big>(</big><em>Rsin</em>, <em>currentdate</em>, <em>radiationCorDir</em>, <em>logger</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.correctRsin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Corrects incoming radiation using the information from the e2o_radiation module</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>Rsin</strong> &#8211; </li>
+<li><strong>currentdate</strong> &#8211; </li>
+<li><strong>radiationCorDir</strong> &#8211; </li>
+<li><strong>logger</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">corrected incoming radiation</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -219,6 +363,49 @@ Initialise with a list of netcdf files and a variable name (standard_name)</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="e2o_dstools.e2o_calculateEvaporation.resample">
+<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">resample</tt><big>(</big><em>highResdemname</em>, <em>prefix</em>, <em>ncnt</em>, <em>logger</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.resample" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>highResdemname</strong> &#8211; </li>
+<li><strong>prefix</strong> &#8211; </li>
+<li><strong>ncnt</strong> &#8211; map to resample</li>
+<li><strong>logger</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">resampled map</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="e2o_dstools.e2o_calculateEvaporation.resampleDEM">
+<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">resampleDEM</tt><big>(</big><em>nameHighResDEM</em>, <em>nameLowResDEM</em>, <em>logger</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.resampleDEM" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>nameHighResDEM</strong> &#8211; </li>
+<li><strong>nameLowResDEM</strong> &#8211; </li>
+<li><strong>logger</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">elevationcorrection, hiresdem, upscaled_lowresdem</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="e2o_dstools.e2o_calculateEvaporation.usage">
 <tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">usage</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.usage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print usage information</p>
@@ -227,6 +414,7 @@ Initialise with a list of netcdf files and a variable name (standard_name)</p>
 </ul>
 </dd></dl>
 
+</div>
 </div>
 
 
@@ -245,7 +433,7 @@ Initialise with a list of netcdf files and a variable name (standard_name)</p>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="faq.html" title="Questions and answers"
+          <a href="e2o_getvar.html" title="e2o_getvar - retrieve variables"
              >next</a> |</li>
         <li class="right" >
           <a href="radiation.html" title="Radiation correction on a digital elevation model"
