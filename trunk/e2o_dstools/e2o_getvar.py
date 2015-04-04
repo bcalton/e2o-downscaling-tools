@@ -326,6 +326,7 @@ def main(argv=None):
     getDataForVar = False
     loglevel=logging.DEBUG
     downscaling = "False"
+    resampling = "True"
     
 
     if argv is None:
@@ -371,13 +372,21 @@ def main(argv=None):
     oprefix = configget(logger,theconf,"output","prefix","E2O")
 
     downscaling  = configget(logger,theconf,"selection","downscaling",downscaling)
+    resampling  = configget(logger,theconf,"selection","resampling",resampling)
     FNhighResDEM = configget(logger,theconf,"downscaling","highResDEM","downscaledem.map")
     FNlowResDEM = configget(logger,theconf,"downscaling","lowResDEM","origdem.map")
     logger.debug("Done reading settings.")
 
-    if downscaling =='True':
+    if downscaling =="True":
+        resampling = "True"
+        lowresX, lowresY, lowcols, lowrows, xlowres, ylowres, lowresdem, FillVal = readMap(FNlowResDEM,'PCRaster',logger)
+        lowresdem_resamp = resample_grid(lowresdem,xlowres,ylowres, xhires,yhires,method=interpolmethod)
         resX, resY, cols, rows, xhires, yhires, hiresdem, FillVal = readMap(FNhighResDEM,'PCRaster',logger)
         interpolmethod=configget(logger,theconf,"downscaling","interpolmethod",interpolmethod)
+
+    #if resampling =='True':
+    #    resX, resY, cols, rows, xhires, yhires, hiresdem, FillVal = readMap(FNhighResDEM,'PCRaster',logger)
+    #    interpolmethod=configget(logger,theconf,"downscaling","interpolmethod",interpolmethod)
 
 
     #Add options for multiple variables
@@ -412,12 +421,13 @@ def main(argv=None):
             cnt = 0
             for a in timelist:
                 mapname = getmapname(cnt+1,oprefix)
-                print ncstepobj.lon
-                print ncstepobj.lat
-                print yhires
 
-                if downscaling =="True":
+                if resampling =="True":
                     newdata = resample_grid(flipud(mstack[cnt,:,:]),ncstepobj.lon,ncstepobj.lat, xhires,yhires,method=interpolmethod)
+                    if downscaling == "True":
+                        print " Not yet done..."
+
+                        # Mak downscale function, input resampled grid, orig dem also resample
                     writeMap(os.path.join(odir,mapname),oformat,xhires,yhires,newdata,-999.0)
                 else:
                     writeMap(os.path.join(odir,mapname),oformat,ncstepobj.lon,ncstepobj.lat[::-1],flipud(mstack[cnt,:,:]),-999.0)
