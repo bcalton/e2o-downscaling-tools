@@ -295,6 +295,25 @@ def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaste
 
 
 
+def downscale(origgrid, loresdem_resamp,hiresdem,,xlow,ylow, xhigh, yhigh, downscaletype,interpolmethod=None):
+    """
+
+    :param origgrid: Grid in original resolution to downscale
+    :param loresdem_resamp: Original DEM resample to final resolution
+    :param hiresdem: High resolution dem
+    :param xlow: x low res dem
+    :param ylow: y low res dem
+    :param xhigh: x high res dem
+    :param yhigh: y high res dem
+    :param downscaletype: Temperature, Pressure, Precipitation, radiation (not sure), generic
+    :param interpolmethod: linear, nearest, cubic If noe a default is choosen for each variable
+    :return:
+    """
+    ret = None
+
+    return ret
+
+
 
 def main(argv=None):
 
@@ -380,14 +399,10 @@ def main(argv=None):
     if downscaling =="True":
         resampling = "True"
         lowresX, lowresY, lowcols, lowrows, xlowres, ylowres, lowresdem, FillVal = readMap(FNlowResDEM,'PCRaster',logger)
-        lowresdem_resamp = resample_grid(lowresdem,xlowres,ylowres, xhires,yhires,method=interpolmethod)
         resX, resY, cols, rows, xhires, yhires, hiresdem, FillVal = readMap(FNhighResDEM,'PCRaster',logger)
         interpolmethod=configget(logger,theconf,"downscaling","interpolmethod",interpolmethod)
-
-    #if resampling =='True':
-    #    resX, resY, cols, rows, xhires, yhires, hiresdem, FillVal = readMap(FNhighResDEM,'PCRaster',logger)
-    #    interpolmethod=configget(logger,theconf,"downscaling","interpolmethod",interpolmethod)
-
+        # Resample orid dem to new resolutiion using nearest
+        lowresdem_resamp = resample_grid(lowresdem,xlowres,ylowres, xhires,yhires,method='nearest')
 
     #Add options for multiple variables
     for i in range (0,len(variables)):
