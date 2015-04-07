@@ -216,8 +216,10 @@ def closeLogger(logger, ch):
 
 def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest'):
     """
-    Resample a regular grid be supplyin original and new x, y row,col coordinates
-    Missing values is set to 1E31, the PCRaster standard
+    Resample a regular grid be supplying original and new x, y row,col coordinates
+    Missing values is set to 1E31, the PCRaster standard. If the output grid
+    has a lower resolution the interpolation is done in two steps by first applying
+    a moving window.
 
     :param gridZ_in: datablock of original data (e.g. from readMap)
     :param Xin: X-coordinates of all columns (e.g. from readMap)
@@ -229,20 +231,27 @@ def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest'):
     :return: datablock of new grid.
     """
     
-    from scipy import interpolate
+    from scipy import interpolate, ndimage
     # we need to sort the y data (must be ascending)
     # and thus flip the image
-    Yin.sort()
-    # define interpolatoreipyth
+    Ysrt = sort(Yin)
+
+    # First average if the output has a lower resolution than the input grid
+    insize = min(diff(Xin))
+    outsize = min(diff(Xout))
+    if insize < outsize:
+        xsize = outsize/insize
+        gridZ_in = ndimage.filters.percentile_filter(gridZ_in,50,size=xsize)
+
     if method in 'nearest linear':
-        interobj = interpolate.RegularGridInterpolator((Yin,Xin), flipud(gridZ_in), method=method ,bounds_error=False,fill_value=float32(0.0))
+        interobj = interpolate.RegularGridInterpolator((Ysrt,Xin), flipud(gridZ_in), method=method ,bounds_error=False,fill_value=float32(0.0))
         _x, _y = meshgrid(Xout, Yout)
         yx_outpoints = transpose([_y.flatten(), _x.flatten()])
 
         # interpolate
         res = interobj(yx_outpoints)
     elif method in 'cubic quintic':
-        interobj = interpolate.interp2d(Xin, Yin, gridZ_in,  kind=method, bounds_error=False)
+        interobj = interpolate.interp2d(Xin, Ysrt, gridZ_in,  kind=method, bounds_error=False)
         res = interobj(Xout, Yout)
     else:
         raise ValueError("Interpolation method " + method + " not known.")

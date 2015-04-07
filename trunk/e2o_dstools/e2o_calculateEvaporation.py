@@ -492,7 +492,8 @@ def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaste
     for a in times:
             mapname = getmapname(cnt,prefix)
             #print "saving map: " + os.path.join(directory,mapname)
-            writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[cnt,:,:]),-999.0)
+            #writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[cnt,:,:]),-999.0)
+            writeMap(os.path.join(directory,mapname),oformat,lon,lat,flipud(data[cnt,:,:]),-999.0)
             cnt = cnt + 1    
 
 def save_as_mapsstack_per_day(lat,lon,data,ncnt,directory,prefix="E2O",oformat="PCRaster"):        
@@ -501,7 +502,8 @@ def save_as_mapsstack_per_day(lat,lon,data,ncnt,directory,prefix="E2O",oformat="
         os.mkdir(directory)
     mapname = getmapname(ncnt,prefix)
     #print "saving map: " + os.path.join(directory,mapname)
-    writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[:,:]),-999.0)
+    #writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[:,:]),-999.0)
+    writeMap(os.path.join(directory,mapname),oformat,lon,lat,flipud(data[:,:]),-999.0)
 
 def save_as_gtiff(lat,lon,data,ncnt,directory,prefix,oformat='GTiff'):        
     
