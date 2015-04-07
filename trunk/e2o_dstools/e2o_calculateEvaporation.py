@@ -1280,9 +1280,11 @@ def main(argv=None):
             if downscaling == 'True': 
                 dirs = ['temp','resampled']
                 for directory in dirs:
-                    fileList = os.listdir(directory)
+                    if os.path.exists(directory):
+                        fileList = os.listdir(directory)
                     for fileName in fileList:
-                        os.remove(directory+"/"+fileName)
+                        if os.path.exists(os.path.join(directory, filename)):
+                            os.remove(os.path.join(directory, filename))
         
         else:
             pass
