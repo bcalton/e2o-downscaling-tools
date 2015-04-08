@@ -493,7 +493,7 @@ def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaste
             mapname = getmapname(cnt,prefix)
             #print "saving map: " + os.path.join(directory,mapname)
             #writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[cnt,:,:]),-999.0)
-            writeMap(os.path.join(directory,mapname),oformat,lon,lat,flipud(data[cnt,:,:]),-999.0)
+            writeMap(os.path.join(directory,mapname),oformat,lon,lat,data[cnt,:,:],-999.0)
             cnt = cnt + 1    
 
 def save_as_mapsstack_per_day(lat,lon,data,ncnt,directory,prefix="E2O",oformat="PCRaster"):        
@@ -503,7 +503,7 @@ def save_as_mapsstack_per_day(lat,lon,data,ncnt,directory,prefix="E2O",oformat="
     mapname = getmapname(ncnt,prefix)
     #print "saving map: " + os.path.join(directory,mapname)
     #writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[:,:]),-999.0)
-    writeMap(os.path.join(directory,mapname),oformat,lon,lat,flipud(data[:,:]),-999.0)
+    writeMap(os.path.join(directory,mapname),oformat,lon,lat,data[:,:],-999.0)
 
 def save_as_gtiff(lat,lon,data,ncnt,directory,prefix,oformat='GTiff'):        
     
@@ -1186,18 +1186,10 @@ def main(argv=None):
                         tmax     = correctTemp(tmax,elevationCorrection)
                                                        
                     PETmm = PenmanMonteith(LATITUDE, currentdate, relevantDataFields, tmax, tmin)
-                                        
-                    if downscaling == 'True':
-                        PETmm = np.flipud(PETmm)
-                        
+
                     logger.info("Saving PM PET data for: " +str(currentdate))
                     save_as_mapsstack_per_day(lats,lons,PETmm,int(ncnt),odir,prefix=oprefix,oformat=oformat)
                     if saveAllData:
-                        if downscaling == 'True':
-                            tmin = np.flipud(tmin)
-                            tmax = np.flipud(tmax)
-                            for i in range(0,6):
-                                relevantDataFields[i] = np.flipud(relevantDataFields[i])
                         save_as_mapsstack_per_day(lats,lons,tmin,int(ncnt),odir,prefix='TMIN',oformat=oformat)
                         save_as_mapsstack_per_day(lats,lons,tmax,int(ncnt),odir,prefix='TMAX',oformat=oformat)
                         save_as_mapsstack_per_day(lats,lons,relevantDataFields[1],int(ncnt),odir,prefix='RLIN',oformat=oformat)
@@ -1234,7 +1226,7 @@ def main(argv=None):
                    
                     PETmm = PriestleyTaylor(LATITUDE, currentdate, relevantDataFields, tmax, tmin)
                                    
-                    logger.info("Saving PT PET data for: " +str(currentdate))
+                    logger.info("Saving PriestleyTaylor PET data for: " +str(currentdate))
 
                     if downscaling == 'True':
                         PETmm = np.flipud(PETmm)
@@ -1272,7 +1264,7 @@ def main(argv=None):
                     if downscaling == 'True':
                         PETmm = np.flipud(PETmm)
     
-                    logger.info("Saving HAR PET data for: " +str(currentdate))
+                    logger.info("Saving Hargreaves PET data for: " +str(currentdate))
                     save_as_mapsstack_per_day(lats,lons,PETmm,int(ncnt),odir,prefix=oprefix,oformat=oformat)
             
             
