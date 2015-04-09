@@ -1306,15 +1306,7 @@ def main(argv=None):
                     save_as_mapsstack_per_day(lats,lons,PETmm,int(ncnt),odir,prefix=oprefix,oformat=oformat)
             
             
-            #cleaning temp and resample directory
-            if downscaling == 'True': 
-                dirs = ['temp','resampled']
-                for directory in dirs:
-                    if os.path.exists(directory):
-                        fileList = os.listdir(directory)
-                    for fileName in fileList:
-                        if os.path.exists(os.path.join(directory, filename)):
-                            os.remove(os.path.join(directory, filename))
+
         
         else:
             pass
