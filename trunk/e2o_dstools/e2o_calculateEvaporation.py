@@ -1182,8 +1182,6 @@ def main(argv=None):
                                 LATITUDE = zeros_like(highResDEM)
                                 for i in range(0,LATITUDE.shape[1]):
                                     LATITUDE[:,i] = highResLat
-                                writeMap("1a.MAP","PCRaster",highResLon,highResLat,LATITUDE,FillVal)
-
 
 
                             #assign longitudes and lattitudes grids
@@ -1255,22 +1253,27 @@ def main(argv=None):
                     tmin = mstack.min(axis=0)
                     tmax = mstack.max(axis=0)
                     if downscaling == 'True':
-                        save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,tmin,int(ncnt),'temp','tmin',oformat=oformat)
-                        save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,tmax,int(ncnt),'temp','tmax',oformat=oformat)
-                        tmin = resample(FNhighResDEM,'tmin',int(ncnt),logger)
-                        tmax = resample(FNhighResDEM,'tmax',int(ncnt),logger)
-                        tmin     = correctTemp(tmin,elevationCorrection)
-                        tmax     = correctTemp(tmax,elevationCorrection)
-                   
+                        tmin = resample_grid(tmin,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method='linear',FillVal=FillVal)
+                        tmax = resample_grid(tmax,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method='linear',FillVal=FillVal)
+                        tmin = correctTemp(tmin,elevationCorrection)
+                        tmax = correctTemp(tmax,elevationCorrection)
+                        tmax[mismask] = FillVal
+                        tmin[mismask] = FillVal
+
                     PETmm = PriestleyTaylor(LATITUDE, currentdate, relevantDataFields, tmax, tmin)
-                                   
+                    PETmm[mismask] = FillVal
+                    PETmm[PETmm < -10.0] = FillVal
+                    PETmm[PETmm > 135.0] = FillVal
                     logger.info("Saving PriestleyTaylor PET data for: " +str(currentdate))
 
-                    if downscaling == 'True':
-                        PETmm = np.flipud(PETmm)
-                        
-                    save_as_mapsstack_per_day(lats,lons,PETmm,int(ncnt),odir,prefix=oprefix,oformat=oformat)
-                                  
+                    save_as_mapsstack_per_day(lats,lons,PETmm,int(ncnt),odir,prefix=oprefix,oformat=oformat,FillVal=FillVal)
+                    if saveAllData:
+                        save_as_mapsstack_per_day(lats,lons,tmin,int(ncnt),odir,prefix='TMIN',oformat=oformat,FillVal=FillVal)
+                        save_as_mapsstack_per_day(lats,lons,tmax,int(ncnt),odir,prefix='TMAX',oformat=oformat,FillVal=FillVal)
+                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[4],int(ncnt),odir,prefix='RSIN',oformat=oformat,FillVal=FillVal)
+                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[0],int(ncnt),odir,prefix='TEMP',oformat=oformat,FillVal=FillVal)
+
+
             if evapMethod == 'Hargreaves':
                 mapname = os.path.join(odir,getmapname(ncnt,oprefix))
                 if os.path.exists(mapname):
@@ -1289,25 +1292,26 @@ def main(argv=None):
                     tmin = mstack.min(axis=0)
                     tmax = mstack.max(axis=0)
                     if downscaling == 'True':
-                        save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,tmin,int(ncnt),'temp','tmin',oformat=oformat)
-                        save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,tmax,int(ncnt),'temp','tmax',oformat=oformat)
-                        tmin = resample(FNhighResDEM,'tmin',int(ncnt),logger)
-                        tmax = resample(FNhighResDEM,'tmax',int(ncnt),logger)
-                        tmin     = correctTemp(tmin,elevationCorrection)
-                        tmax     = correctTemp(tmax,elevationCorrection)
+                        tmin = resample_grid(tmin,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method='linear',FillVal=FillVal)
+                        tmax = resample_grid(tmax,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method='linear',FillVal=FillVal)
+                        tmin = correctTemp(tmin,elevationCorrection)
+                        tmax = correctTemp(tmax,elevationCorrection)
+                        tmax[mismask] = FillVal
+                        tmin[mismask] = FillVal
                         
                     logger.info("Start hargreaves..")
                     PETmm = hargreaves(LATITUDE,currentdate,relevantDataFields, tmax, tmin)
-                    
-                    if downscaling == 'True':
-                        PETmm = np.flipud(PETmm)
+                    PETmm[mismask] = FillVal
+                    PETmm[PETmm < -10.0] = FillVal
+                    PETmm[PETmm > 135.0] = FillVal
     
                     logger.info("Saving Hargreaves PET data for: " +str(currentdate))
-                    save_as_mapsstack_per_day(lats,lons,PETmm,int(ncnt),odir,prefix=oprefix,oformat=oformat)
-            
-            
+                    save_as_mapsstack_per_day(lats,lons,PETmm,int(ncnt),odir,prefix=oprefix,oformat=oformat,FillVal=FillVal)
+                    if saveAllData:
+                        save_as_mapsstack_per_day(lats,lons,tmin,int(ncnt),odir,prefix='TMIN',oformat=oformat,FillVal=FillVal)
+                        save_as_mapsstack_per_day(lats,lons,tmax,int(ncnt),odir,prefix='TMAX',oformat=oformat,FillVal=FillVal)
+                        save_as_mapsstack_per_day(lats,lons,relevantDataFields[0],int(ncnt),odir,prefix='TEMP',oformat=oformat,FillVal=FillVal)
 
-        
         else:
             pass
         
