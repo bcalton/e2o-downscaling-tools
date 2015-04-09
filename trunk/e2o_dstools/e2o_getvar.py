@@ -295,25 +295,6 @@ def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaste
 
 
 
-def downscale(origgrid, loresdem_resamp,hiresdem,,xlow,ylow, xhigh, yhigh, downscaletype,interpolmethod=None):
-    """
-
-    :param origgrid: Grid in original resolution to downscale
-    :param loresdem_resamp: Original DEM resample to final resolution
-    :param hiresdem: High resolution dem
-    :param xlow: x low res dem
-    :param ylow: y low res dem
-    :param xhigh: x high res dem
-    :param yhigh: y high res dem
-    :param downscaletype: Temperature, Pressure, Precipitation, radiation (not sure), generic
-    :param interpolmethod: linear, nearest, cubic If noe a default is choosen for each variable
-    :return:
-    """
-    ret = None
-
-    return ret
-
-
 
 def main(argv=None):
 
@@ -446,7 +427,6 @@ def main(argv=None):
                     writeMap(os.path.join(odir,mapname),oformat,xhires,yhires,newdata,-999.0)
                 else:
                     writeMap(os.path.join(odir,mapname),oformat,ncstepobj.lon,ncstepobj.lat[::-1],flipud(mstack[cnt,:,:]),-999.0)
-
 
                 cnt = cnt + 1
                 #save_as_mapsstack(ncstepobj.lat,ncstepobj.lon,mstack,timelist,odir,prefix=oprefix,oformat=oformat)
