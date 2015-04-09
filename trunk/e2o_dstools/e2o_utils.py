@@ -69,13 +69,25 @@ def getmapname(number,prefix):
     return mapname
 
 def writeMap(fileName, fileFormat, x, y, data, FillVal):
-    """ Write geographical data into file"""
+    """
+    Write geographical data into file. Also replave NaN bu FillVall
+
+    :param fileName:
+    :param fileFormat:
+    :param x:
+    :param y:
+    :param data:
+    :param FillVal:
+    :return:
+    """
+
 
     verbose = False
     gdal.AllRegister()
     driver1 = gdal.GetDriverByName('GTiff')
     driver2 = gdal.GetDriverByName(fileFormat)
 
+    data[isnan(data)] = FillVal
     # Processing
     if verbose:
         print 'Writing to temporary file ' + fileName + '.tif'
@@ -214,7 +226,7 @@ def closeLogger(logger, ch):
 
 
 
-def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest'):
+def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest',FillVal=1E31):
     """
     Resample a regular grid be supplying original and new x, y row,col coordinates
     Missing values is set to 1E31, the PCRaster standard. If the output grid
@@ -227,6 +239,7 @@ def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest'):
     :param Xout: X-coordinates of all columns in the new map (e.g. from readMap)
     :param Yout: Y-coordinates of all columns in the new map (e.g. from readMap)
     :param method: linear, nearest, cubic, quintic
+    :param FillVal: Value for the missing values
 
     :return: datablock of new grid.
     """
@@ -244,7 +257,7 @@ def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest'):
         gridZ_in = ndimage.filters.percentile_filter(gridZ_in,50,size=xsize)
 
     if method in 'nearest linear':
-        interobj = interpolate.RegularGridInterpolator((Ysrt,Xin), flipud(gridZ_in), method=method ,bounds_error=False,fill_value=float32(0.0))
+        interobj = interpolate.RegularGridInterpolator((Ysrt,Xin), flipud(gridZ_in), method=method ,bounds_error=False,fill_value=FillVal)
         _x, _y = meshgrid(Xout, Yout)
         yx_outpoints = transpose([_y.flatten(), _x.flatten()])
 
@@ -258,6 +271,6 @@ def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest'):
 
     #reshape to the new grid
     result = reshape(res, (len(Yout), len(Xout)))
-    result[isnan(result)] = 1E31
+    result[isnan(result)] = FillVal
     
     return result
