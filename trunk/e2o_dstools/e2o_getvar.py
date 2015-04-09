@@ -7,7 +7,7 @@ usage:
     e2o_getvar.py -I inifile [-l loglevel]
 
     -I inifile - ini file with settings which data to get
-    -l loglevel (most be one of DEBUG, WARNING, ERROR)
+    -l loglevel (must be one of DEBUG, WARNING, ERROR)
 """
 
 
