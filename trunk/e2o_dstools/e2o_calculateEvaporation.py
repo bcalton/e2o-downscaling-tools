@@ -677,11 +677,21 @@ def resample(highResdemname,prefix,ncnt,logger):
     return data
 
 def correctTemp(Temp,elevationCorrection):
-
+    
+    """
+    Elevation based correction of temperature
+    
+    inputs:
+    Temperature             = daily mean, min or max temperature (degrees Celcius)   
+    Elevation correction    = difference between high resolution and low resolution (0.5 degrees) DEM  [m]
+    
+    constants:
     lapse_rate = 0.006 # [ K m-1 ]
-
+    """
 
     #apply elevation correction
+    lapse_rate = 0.006 # [ K m-1 ]
+
     Temp_cor   = Temp - lapse_rate * elevationCorrection
     
     return Temp_cor 
@@ -799,7 +809,6 @@ def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin):
     TimeStepSecs = 86400        # timestep in seconds
     karman       = 0.41         # von Karman constant [-]
     vegh         = 0.12         # vegetation height [m] 
-    refh         = 2            # reference height where wind speed is measured
     alpha        = 0.23         # albedo, 0.23 [-]
     rs           = 70           # surface resistance, 70 [s m-1]
     R            = 287.058      # Universal gas constant [J kg-1 K-1]
@@ -1308,6 +1317,7 @@ def main(argv=None):
                     PETmm[PETmm > 135.0] = FillVal
     
                     logger.info("Saving Hargreaves PET data for: " +str(currentdate))
+
                     save_as_mapsstack_per_day(lats,lons,PETmm,int(ncnt),odir,prefix=oprefix,oformat=oformat,FillVal=FillVal)
                     if saveAllData:
                         save_as_mapsstack_per_day(lats,lons,tmin,int(ncnt),odir,prefix='TMIN',oformat=oformat,FillVal=FillVal)
