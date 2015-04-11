@@ -713,8 +713,10 @@ def correctRsin(Rsin,currentdate,radiationCorDir,logger):
     missmask = cor == FillVal
     flat[flat == 0.0] = 0.00001
     flatdir[flatdir == 0.0] = 0.00001
-    ratio           = flatdir / flat
-    Rsin_dir        = ratio * Rsin
+    #ratio           = flatdir / flat
+    # Determine clear sky factor
+    Kc = clip(Rsin/flat,0.0,1.0)
+    Rsin_dir        = Kc * Rsin
     #corrected Rsin direct for elevation and slope
     Rsin_dir_cor    = (cordir/flatdir)*Rsin_dir
     Rsin_cor        = Rsin_dir_cor + (Rsin - Rsin_dir)
