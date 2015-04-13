@@ -706,6 +706,10 @@ def correctRsin(Rsin,currentdate,radiationCorDir,logger):
     :param logger:
     :return:  corrected incoming radiation
     """
+
+    #AtmPcorOrg = power(((288.0-0.0065*AltitudeOrg)/288.0),5.256)
+    #AtmPcorDownscale = power(((288.0-0.0065*AltitudeDownscale)/288.0),5.256)
+    #AtmCorFac = AtmPcorOrg/AtmPcorDownscale
     #get day of year
     logger.info("Correcting incoming radiation with DEM...")
     tt  = currentdate.timetuple()
@@ -719,21 +723,24 @@ def correctRsin(Rsin,currentdate,radiationCorDir,logger):
     resX, resY, cols, rows, x, y, flatdir, FillVal         = readMap((os.path.join(radiationCorDir,(getmapname(JULDAY,'FLATDIR')))),'PCRaster',logger)
     resX, resY, cols, rows, x, y, cor, FillVal             = readMap((os.path.join(radiationCorDir,(getmapname(JULDAY,'COR')))),'PCRaster',logger)
     resX, resY, cols, rows, x, y, cordir, FillVal          = readMap((os.path.join(radiationCorDir,(getmapname(JULDAY,'CORDIR')))),'PCRaster',logger)
+    resX, resY, cols, rows, x, y, optcoradjust, FillVal          = readMap((os.path.join(radiationCorDir,(getmapname(JULDAY,'OPT')))),'PCRaster',logger)
+
     #ratio direct - diffuse
     missmask = cor == FillVal
     flat[flat == 0.0] = 0.00001
     flatdir[flatdir == 0.0] = 0.00001
     #ratio           = flatdir / flat
     # Determine clear sky factor
-    Kc = clip(Rsin/flat,0.0,1.0)
+    Rsin = Rsin * optcoradjust
+    Kc = Rsin/flat
     Rsin_dir        = Kc * Rsin
     #corrected Rsin direct for elevation and slope
     Rsin_dir_cor    = (cordir/flatdir)*Rsin_dir
     Rsin_cor        = Rsin_dir_cor + (Rsin - Rsin_dir)
     Rsin_cor[missmask] = FillVal
     Rsin_cor[Rsin_cor < 0.0] = FillVal
-    
-    return Rsin_cor
+
+    return Rsin_cor, Kc
 
 def correctPres(relevantDataFields, Pressure, highResDEM, resLowResDEM,FillVal=1E31):
     """
@@ -1113,6 +1120,8 @@ def main(argv=None):
         # Fille gaps in high res DEM with Zeros for ineterpolation purposes
         lowResDEM[Lmismask] = 0.0
         resLowResDEM = resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method='linear',FillVal=0.0)
+        resLowResDEMNear = resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method='nearest',FillVal=0.0)
+
         lowResDEM[Lmismask] = FillVal
         elevationCorrection = highResDEM - resLowResDEM
 
@@ -1172,9 +1181,9 @@ def main(argv=None):
                             if variables[i]     == 'Temperature':
                                 mean_as_map     = correctTemp(mean_as_map,elevationCorrection)
                             if variables[i]     == 'SurfaceIncidentShortwaveRadiation':
-                                mean_as_map     = correctRsin(mean_as_map,currentdate,radcordir,logger)
+                                mean_as_map, Kc, Atm     = correctRsin(mean_as_map,currentdate,radcordir,highResDEM, resLowResDEMNear, logger)
                             if variables[i]     == 'SurfaceAtmosphericPressure':
-                                mean_as_map     = correctPres(relevantDataFields, mean_as_map, highResDEM, resLowResDEM,FillVal=FillVal)
+                                mean_as_map     = correctPres(relevantDataFields, mean_as_map, highResDEM, resLowResDEMNear,FillVal=FillVal)
                             mean_as_map[mismask] = FillVal
 
                         relevantDataFields.append(mean_as_map)
@@ -1245,7 +1254,8 @@ def main(argv=None):
                         save_as_mapsstack_per_day(lats,lons,relevantDataFields[4],int(ncnt),odir,prefix='RSIN',oformat=oformat,FillVal=FillVal)
                         save_as_mapsstack_per_day(lats,lons,relevantDataFields[5],int(ncnt),odir,prefix='WIN',oformat=oformat,FillVal=FillVal)
                         save_as_mapsstack_per_day(lats,lons,relevantDataFields[0],int(ncnt),odir,prefix='TEMP',oformat=oformat,FillVal=FillVal)
-
+                        save_as_mapsstack_per_day(lats,lons,Kc,int(ncnt),odir,prefix='KC',oformat=oformat,FillVal=FillVal)
+                        save_as_mapsstack_per_day(lats,lons,Atm,int(ncnt),odir,prefix='ATM',oformat=oformat,FillVal=FillVal)
 
                   
             if evapMethod == 'PriestleyTaylor':

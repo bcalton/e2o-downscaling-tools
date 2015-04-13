@@ -28,10 +28,11 @@ Determine clear sky radiation over a Digital Elevation Model.
 
 Usage::
 
-    e2o_radiation -D DEM [-O outputdir][-S start day][-E end day]
+    e2o_radiation -D DEM [-d DEM][-O outputdir][-S start day][-E end day]
               [-M][-x lon][-y lat][-h][-l loglevel][-T minutes]
 
     -D DEM Filename of the digital elevation model
+    -d DEM option loc resolution dem to determien heigth correction for
     -O outputdir (default is . )
     -S Startday - Start day of the simulation (1 Jan is 1)
     -E EndDay - End day of the simulation
@@ -124,7 +125,7 @@ def detRealCellLength(ZeroMap,sizeinmetres):
     return xl,yl,reallength
 
 
-def correctrad(Day,Hour,Lat,Lon,Slope,Aspect,Altitude,Altitude_UnitLatLon):
+def correctrad(Day,Hour,Lat,Lon,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAltitude):
     """ 
     Determines radiation over a DEM assuming clear sky for a specified hour of
     a day
@@ -140,7 +141,7 @@ def correctrad(Day,Hour,Lat,Lon,Slope,Aspect,Altitude,Altitude_UnitLatLon):
                           are in lat lon this maps should hold the Altitude converted
                           to degrees. If the maps are in metres this maps should also
                           be in metres
-
+    :var AltAltitude: DEM to tranfer optcorr to (CorFac)
     :return Stot: Total radiation on the dem, shadows not taken into account
     :return StotCor: Total radiation on the dem taking shadows into acount
     :return StotFlat: Total radiation on the dem assuming a flat surface
@@ -154,6 +155,7 @@ def correctrad(Day,Hour,Lat,Lon,Slope,Aspect,Altitude,Altitude_UnitLatLon):
     #report(a,"zz.map")
 
     AtmPcor = pow(((288.0-0.0065*Altitude)/288.0),5.256)
+    AtmPcorAlt = pow(((288.0-0.0065*AltAltitude)/288.0),5.256)
     #Lat = Lat * pi/180
     ##########################################################################
     # Calculate Solar Angle and correct radiation ############################
@@ -209,7 +211,9 @@ def correctrad(Day,Hour,Lat,Lon,Slope,Aspect,Altitude,Altitude_UnitLatLon):
     # ----------------------------
     #report(HoriAng,"hor.map")
 
-    OpCorr = Trans**((sqrt(1229+(614*sin(SolAlt))**2) -614*sin(SolAlt))*AtmPcor)    # correction for air masses [-] 
+    OpCorr = Trans**((sqrt(1229.0+(614.0*sin(SolAlt))**2) -614.0*sin(SolAlt))*AtmPcor)    # correction for air masses [-]
+    AltOpCorr = Trans**((sqrt(1229.0+(614.0*sin(SolAlt))**2) -614.0*sin(SolAlt))*AtmPcorAlt)
+    #CorFac = max(OpCorr,0.001)/max(AltOpCorr,0.001)
     Sout   = Sc*(1+0.034*cos(360*Day/365.0)) # radiation outer atmosphere [W/m2]
     Snor   = Sout*OpCorr                   # rad on surface normal to the beam [W/m2]
 
@@ -236,10 +240,10 @@ def correctrad(Day,Hour,Lat,Lon,Slope,Aspect,Altitude,Altitude_UnitLatLon):
     
     
      
-    return StotCor, StotFlat, Shade, SdirCor, SdirFlat
+    return StotCor, StotFlat, Shade, SdirCor, SdirFlat, OpCorr, AltOpCorr
 
 
-def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, logje, start=1, end=2, interval=60, shour=1, ehour=23, outformat='PCRaster',Addpostfix=False):
+def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, AltDem, logje, start=1, end=2, interval=60, shour=1, ehour=23, outformat='PCRaster',Addpostfix=False):
     """
     Generate radiation masp for a number of days
 
@@ -250,6 +254,7 @@ def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, logje, sta
     :param Aspect: Aspect
     :param Altitude: Altitude
     :param DegreeDem: Altitude with elevation rescaled to degree lat/lon
+    :param AltDem: DEM to convert optcor to
     :param logje: Logger
     :param start: Start day of the year
     :param end: End day of the year
@@ -275,6 +280,8 @@ def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, logje, sta
             avgrad = 0.0 * Altitude
             _flat = 0.0 * Altitude
             avshade = 0.0 * Altitude
+            avgoptcor = 0.0 * Altitude
+            avgaltoptcor = 0.0 * Altitude
 
             cordir = 0.0 * Altitude
             flatdir = 0.0 * Altitude
@@ -282,12 +289,14 @@ def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, logje, sta
             logje.info("Calulations for day: " + str(Day))
             for Hour in calchours:
                 logje.debug("Hour: " + str(Hour))
-                crad,  flat, shade, craddir, craddirflat = correctrad(Day,float(Hour),Lat,Lon,Slope,Aspect,Altitude,DegreeDem)
+                crad,  flat, shade, craddir, craddirflat, optcor, altoptcor = correctrad(Day,float(Hour),Lat,Lon,Slope,Aspect,Altitude,DegreeDem,AltDem)
                 avgrad=avgrad + crad
                 _flat = _flat + flat
                 avshade=avshade + scalar(shade)
                 cordir = cordir + craddir
                 flatdir = flatdir + craddirflat
+                avgoptcor = avgoptcor + optcor
+                avgaltoptcor = avgaltoptcor + altoptcor
                 id = id + 1
 
 
@@ -310,6 +319,8 @@ def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, logje, sta
             e2o_utils.writeMap(os.path.join(SaveDir,"CORDIR00." + nr+ postfix),outformat,x,y,data, 1E31)
             data = pcr2numpy(flatdir/Calcsteps,1E31)
             e2o_utils.writeMap(os.path.join(SaveDir,"FLATDIR0." + nr+ postfix),outformat,x,y,data, 1E31)
+            data = pcr2numpy(avgoptcor/avgaltoptcor,1E31)
+            e2o_utils.writeMap(os.path.join(SaveDir,"OPT00000." + nr+ postfix),outformat,x,y,data, 1E31)
 
 
 def usage(*args):
@@ -328,7 +339,7 @@ def usage(*args):
 def main(argv=None):
     """
 
-    :param argv: See ussage
+    :param argv: See usage
     :return:
     """
 
@@ -340,7 +351,7 @@ def main(argv=None):
 
 
     try:
-        opts, args = getopt.getopt(argv, 'hD:Mx:y:l:O:S:E:T:s:e:f:p')
+        opts, args = getopt.getopt(argv, 'hD:d:Mx:y:l:O:S:E:T:s:e:f:p')
     except getopt.error, msg:
         usage(msg)
 
@@ -358,12 +369,14 @@ def main(argv=None):
     ehour=23
     oformat ='PCRaster'
     postfix =False
+    lowresdem="notset"
 
 
     for o, a in opts:
         if o == '-h': usage()
         if o == '-O': outputdir = a
         if o == '-D': thedem = a
+        if o == '-d': lowresdem = a
         if o == '-M': xymetres = true
         if o == '-x': lat = int(a)
         if o == '-y': lon = int(a)
@@ -387,6 +400,14 @@ def main(argv=None):
     logger.debug("Reading dem: " " thedem")
     setclone(thedem)
     dem = readmap(thedem)
+    if "notset" not in lowresdem:
+        LresX, LresY, Lcols, Lrows, lowResLon, lowResLat, lowResDEM, FillVal = e2o_utils.readMap(lowresdem,'GTiff',logger)
+        resX, resY, cols, rows, highResLon, highResLat, highResDEM, FillVal = e2o_utils.readMap(thedem,'GTiff',logger)
+        resLowResDEMNear = e2o_utils.resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method='nearest',FillVal=0.0)
+        Altdem = numpy2pcr(Scalar,resLowResDEMNear,FillVal)
+    else:
+        Altdem = dem
+
 
     logger.debug("Calculating slope and aspect...")
     if xymetres:
@@ -402,11 +423,12 @@ def main(argv=None):
         Slope = max(0.00001, Slope * celllength() / reallength)
         DEMxyUnits = dem * celllength() / reallength
 
+
     # Get slope in degrees
     Slope = scalar(atan(Slope))
     Aspect = cover(scalar(aspect(dem)),0.0)
 
-    GenRadMaps(outputdir,LAT,LON,Slope,Aspect,dem,DEMxyUnits,logger,start=startday,end=endday,interval=calc_interval,shour=shour,ehour=ehour,outformat=oformat,Addpostfix=postfix)
+    GenRadMaps(outputdir,LAT,LON,Slope,Aspect,dem,DEMxyUnits,Altdem,logger,start=startday,end=endday,interval=calc_interval,shour=shour,ehour=ehour,outformat=oformat,Addpostfix=postfix)
 
 
 if __name__ == "__main__":
