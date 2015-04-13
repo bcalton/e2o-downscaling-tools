@@ -41,7 +41,7 @@ def usage(*args):
 class ncdatset():
     """
     Wrapper around the nc object to simplify things
-    
+
     Opens the dataset and determines the number of dimensions
     3 = T, Lat Lon
     4 = T heigth, Lat Lon
@@ -70,8 +70,8 @@ class ncdatset():
 
     def __del__(self):
         self.nc.close()
-        
-        
+
+
     def getlat(self,ncdataset):
         """
         """
@@ -102,7 +102,7 @@ class ncdatset():
                 return ncdataset.variables[a]
 
         return None
-        
+
 
     def getlon(self,ncdataset):
         """
@@ -137,11 +137,11 @@ def get_times_daily(startdate,enddate, serverroot, wrrsetroot, filename,logger):
     filelist = {}
     for x in range (0, numdays.days + 1):
         dateList.append(startdate + datetime.timedelta(days = x))
-    
+
     for thedate in dateList:
         ncfile = serverroot + wrrsetroot + "%d" % (thedate.year) + "/" + filename + "%d%02d.nc" % (thedate.year,thedate.month)
         filelist[str(thedate)] = ncfile
-    
+
     return filelist, dateList
 
 
@@ -160,11 +160,11 @@ def get_times(startdate,enddate, serverroot, wrrsetroot, filename, timestepSecon
         while delta < 86400:
             dateList.append(startdate + datetime.timedelta(seconds = delta))
             delta += timestepSeconds
-    
+
     for thedate in dateList:
         ncfile = serverroot + wrrsetroot + "%d" % (thedate.year) + "/" + filename + "%d%02d.nc" % (thedate.year,thedate.month)
         filelist[str(thedate)] = ncfile
-    
+
     return filelist, dateList
 
 
@@ -174,7 +174,7 @@ class getstepdaily():
     Initialise with a list of netcdf files and a variable name (standard_name)
 
     """
-    
+
     def __init__(self,nclist,BB,varname,logger):
         """
         """
@@ -195,32 +195,32 @@ class getstepdaily():
         lat = None
         lon = None
         window = None
-        
+
         if datestr in self.list.keys():
             self.dset = ncdatset(self.list[datestr],self.logger)
             data = self.dset.getvarbyname(self.varname)
             lat = flipud(self.dset.lat[:])
-            
+
             lon = self.dset.lon[:]
             (latidx,) = logical_and(lat >= self.BB['lat'][0], lat < self.BB['lat'][1]).nonzero()
             (lonidx,) = logical_and(lon >= self.BB['lon'][0], lon < self.BB['lon'][1]).nonzero()
 
             time = self.dset.time
             timeObj = netCDF4.num2date(time[:], units=time.units, calendar=time.calendar)
-            
+
             dpos = thedate.day -1
-            
+
             if self.dset.dimensions ==3:
                 window = data[dpos,latidx.min():latidx.max()+1,lonidx.min():lonidx.max()+1]
             if self.dset.dimensions ==4:
                 window = data[dpos,0,latidx.min():latidx.max()+1,lonidx.min():lonidx.max()+1]
-            
+
             self.lat = lat[latidx]
             self.lon = lon[lonidx]
-    
+
         else:
             self.logger.error( "cannot find: " + datestr)
-            
+
         return self.lat, self.lon, window
 
     def getdates(self,alldates):
@@ -230,14 +230,14 @@ class getstepdaily():
         lat = None
         lon = None
         ret = []
-        
+
         lastnc = None
-        
+
         # here we loop over nc files for speed reasons
-        
+
         for theone in  unique(self.list.values()):
             self.dset = ncdatset(theone,self.logger)
-            
+
             time = self.dset.time
             tar = time[:]
             timeObj = netCDF4.num2date(tar, units=time.units, calendar=time.calendar)
@@ -247,21 +247,21 @@ class getstepdaily():
                 spos = 0
             else:
                 spos = int(spos)
- 
+
             epos = nonzero(timeObj == alldates[-1])[0]
             if len(epos) != 1:
                 epos = len(tar)
             else:
                 epos = int(epos + 1)
-            
-            
+
+
             self.logger.info("Processing url: " + theone )
-            
+
             data = self.dset.getvarbyname(self.varname)
-            
+
             if data == None:
                 self.logger.error("dataset with standard_name " + self.varname + " not found" )
-                
+
             lat = self.dset.lat[:]
             lon = self.dset.lon[:]
 
@@ -274,17 +274,17 @@ class getstepdaily():
             if self.dset.dimensions ==4:
                 window = data[spos:epos,0,self.latidx.min():self.latidx.max()+1,self.lonidx.min():self.lonidx.max()+1]
 
-            
+
             self.lat = lat[self.latidx]
             self.lon = lon[self.lonidx]
-            
+
             if len(ret) == 0:
                 ret = window.copy()
             else:
                 ret = vstack((ret,window))
-        
+
         return ret
-        
+
     def getdates_seconds(self,alldates):
         """
         Does not work yet
@@ -292,14 +292,14 @@ class getstepdaily():
         lat = None
         lon = None
         ret = []
-        
+
         lastnc = None
-        
+
         # here we loop over nc files fro speed reasons
-        
+
         for theone in  unique(self.list.values()):
             self.dset = ncdatset(theone,self.logger)
-            
+
             time = self.dset.time
             tar = time[:]
             timeObj = netCDF4.num2date(tar, units=time.units, calendar=time.calendar)
@@ -309,21 +309,21 @@ class getstepdaily():
                 spos = 0
             else:
                 spos = int(spos)
- 
+
             epos = nonzero(timeObj == alldates[-1])[0]
             if len(epos) != 1:
                 epos = len(tar)
             else:
                 epos = int(epos + 1)
-            
-            
+
+
             self.logger.info("Processing url: " + theone )
-            
+
             data = self.dset.getvarbyname(self.varname)
-            
+
             if data == None:
                 self.logger.error("dataset with standard_name " + self.varname + " not found" )
-                
+
             lat = self.dset.lat[:]
             lon = self.dset.lon[:]
 
@@ -336,24 +336,24 @@ class getstepdaily():
             if self.dset.dimensions ==4:
                 window = data[spos:epos,0,self.latidx.min():self.latidx.max()+1,self.lonidx.min():self.lonidx.max()+1]
 
-            
+
             self.lat = lat[self.latidx]
             self.lon = lon[self.lonidx]
-            
+
             if len(ret) == 0:
                 ret = window.copy()
             else:
                 ret = vstack((ret,window))
-        
+
         return ret
-        
+
 class getstep():
     """
     class to get data from a set of NC files for user defined timestep in seconds
     Initialise with a list of netcdf files and a variable name (standard_name)
 
     """
-    
+
     def __init__(self,nclist,BB,varname,timestepSeconds,logger):
         """
         """
@@ -374,37 +374,37 @@ class getstep():
         lat = None
         lon = None
         window = None
-        
+
         if datestr in self.list.keys():
             self.dset = ncdatset(self.list[datestr],self.logger)
             data = self.dset.getvarbyname(self.varname)
             lat = flipud(self.dset.lat[:])
-            
+
             lon = self.dset.lon[:]
             (latidx,) = logical_and(lat >= self.BB['lat'][0], lat < self.BB['lat'][1]).nonzero()
             (lonidx,) = logical_and(lon >= self.BB['lon'][0], lon < self.BB['lon'][1]).nonzero()
 
             time = self.dset.time
             timeObj = netCDF4.num2date(time[:], units=time.units, calendar=time.calendar)
-            
+
             if timestepSecond < 3600:
                 dpos = thedate.second -1
             elif timestepSecond < 86400:
                 dpos = thedate.hour -1
             else:
                 dpos = thedate.day -1
-            
+
             if self.dset.dimensions ==3:
                 window = data[dpos,latidx.min():latidx.max()+1,lonidx.min():lonidx.max()+1]
             if self.dset.dimensions ==4:
                 window = data[dpos,0,latidx.min():latidx.max()+1,lonidx.min():lonidx.max()+1]
-            
+
             self.lat = lat[latidx]
             self.lon = lon[lonidx]
-    
+
         else:
             self.logger.error( "cannot find: " + datestr)
-            
+
         return self.lat, self.lon, window
 
     def getdates(self,alldates):
@@ -414,14 +414,14 @@ class getstep():
         lat = None
         lon = None
         ret = []
-        
+
         lastnc = None
-        
+
         # here we loop over nc files fro speed reasons
-        
+
         for theone in  unique(self.list.values()):
             self.dset = ncdatset(theone,self.logger)
-            
+
             time = self.dset.time
             tar = time[:]
             timeObj = netCDF4.num2date(tar, units=time.units, calendar=time.calendar)
@@ -431,21 +431,21 @@ class getstep():
                 spos = 0
             else:
                 spos = int(spos)
- 
+
             epos = nonzero(timeObj == alldates[-1])[0]
             if len(epos) != 1:
                 epos = len(tar)
             else:
                 epos = int(epos + 1)
-            
-            
+
+
             self.logger.info("Processing url: " + theone )
-            
+
             data = self.dset.getvarbyname(self.varname)
-            
+
             if data == None:
                 self.logger.error("dataset with standard_name " + self.varname + " not found" )
-                
+
             lat = self.dset.lat[:]
             lon = self.dset.lon[:]
 
@@ -458,15 +458,15 @@ class getstep():
             if self.dset.dimensions ==4:
                 window = data[spos:epos,0,self.latidx.min():self.latidx.max()+1,self.lonidx.min():self.lonidx.max()+1]
 
-            
+
             self.lat = lat[self.latidx]
             self.lon = lon[self.lonidx]
-            
+
             if len(ret) == 0:
                 ret = window.copy()
             else:
                 ret = vstack((ret,window))
-        
+
         return ret
 
 
@@ -484,8 +484,8 @@ def getmapname(number,prefix):
 
     return mapname
 
-def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaster"):        
-    
+def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaster"):
+
     cnt = 0
     if not os.path.exists(directory):
         os.mkdir(directory)
@@ -494,10 +494,10 @@ def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaste
             #print "saving map: " + os.path.join(directory,mapname)
             #writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[cnt,:,:]),-999.0)
             writeMap(os.path.join(directory,mapname),oformat,lon,lat,data[cnt,:,:],-999.0)
-            cnt = cnt + 1    
+            cnt = cnt + 1
 
 def save_as_mapsstack_per_day(lat,lon,data,ncnt,directory,prefix="E2O",oformat="PCRaster",FillVal=1E31):
-    
+
     if not os.path.exists(directory):
         os.mkdir(directory)
     mapname = getmapname(ncnt,prefix)
@@ -505,8 +505,8 @@ def save_as_mapsstack_per_day(lat,lon,data,ncnt,directory,prefix="E2O",oformat="
     #writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[:,:]),-999.0)
     writeMap(os.path.join(directory,mapname),oformat,lon,lat,data[:,:],FillVal)
 
-def save_as_gtiff(lat,lon,data,ncnt,directory,prefix,oformat='GTiff'):        
-    
+def save_as_gtiff(lat,lon,data,ncnt,directory,prefix,oformat='GTiff'):
+
     if not os.path.exists(directory):
         os.mkdir(directory)
     mapname = prefix + '.tif'
@@ -579,13 +579,13 @@ def resampleDEM(nameHighResDEM, nameLowResDEM,logger):
     :param logger:
     :return: elevationcorrection, hiresdem, upscaled_lowresdem
     """
-    
+
     #create temp dir
     try:
         os.stat('temp')
     except:
         os.mkdir('temp')
-    
+
     # Source
     src_filename    = nameLowResDEM
     src             = gdal.Open(src_filename, gdalconst.GA_ReadOnly)
@@ -616,9 +616,9 @@ def resampleDEM(nameHighResDEM, nameLowResDEM,logger):
 
     highResDEM  = np.maximum(0,highResDEM)
     elevationCorrection = highResDEM - resLowResDEM
-       
+
     return elevationCorrection, highResDEM, resLowResDEM
-    
+
 def resample(highResdemname,prefix,ncnt,logger):
     """
 
@@ -628,23 +628,23 @@ def resample(highResdemname,prefix,ncnt,logger):
     :param logger:
     :return: resampled map
     """
-    
+
     #create resample dir
     try:
         os.stat('resampled')
     except:
-        os.mkdir('resampled')    
-    
+        os.mkdir('resampled')
+
     tif_mapname         = prefix+'.tif'
     pcraster_mapname    = getmapname(ncnt,prefix)
-    
+
     tif_filename        = os.path.join('temp',tif_mapname)
     pcraster_filename   = os.path.join('temp',pcraster_mapname)
     pcraster_resFilename   = os.path.join('resampled',pcraster_mapname)
-    
+
     command= 'gdal_translate -of %s %s %s' % ('GTiff',pcraster_filename,tif_filename)
     os.system(command)
-      
+
     # Source
     src_filename    = os.path.join('temp',tif_mapname)
     src             = gdal.Open(src_filename, gdalconst.GA_ReadOnly)
@@ -669,22 +669,22 @@ def resample(highResdemname,prefix,ncnt,logger):
     gdal.ReprojectImage(src, dst, src_proj, match_proj, gdalconst.GRA_NearestNeighbour)
 
     del dst # Flush
-       
+
     resX, resY, cols, rows, x, y, data, FillVal = readMap(dst_filename,'GTiff',logger)
 
     # nodig?? data    = np.flipud(dataUD)
-    
+
     return data
 
 def correctTemp(Temp,elevationCorrection):
-    
+
     """
     Elevation based correction of temperature
-    
+
     inputs:
-    Temperature             = daily mean, min or max temperature (degrees Celcius)   
+    Temperature             = daily mean, min or max temperature (degrees Celcius)
     Elevation correction    = difference between high resolution and low resolution (0.5 degrees) DEM  [m]
-    
+
     constants:
     lapse_rate = 0.006 # [ K m-1 ]
     """
@@ -693,8 +693,8 @@ def correctTemp(Temp,elevationCorrection):
     lapse_rate = 0.006 # [ K m-1 ]
 
     Temp_cor   = Temp - lapse_rate * elevationCorrection
-    
-    return Temp_cor 
+
+    return Temp_cor
 
 def correctRsin(Rsin,currentdate,radiationCorDir,logger):
     """
@@ -718,8 +718,8 @@ def correctRsin(Rsin,currentdate,radiationCorDir,logger):
     mapname     = getmapname(JULDAY,'FLAT')
     fileName    = os.path.join(radiationCorDir,mapname)
     resX, resY, cols, rows, x, y, data, FillVal          = readMap(fileName,'PCRaster',logger)
-    
-    resX, resY, cols, rows, x, y, flat, FillVal            = readMap((os.path.join(radiationCorDir,(getmapname(JULDAY,'FLAT')))),'PCRaster',logger)   
+
+    resX, resY, cols, rows, x, y, flat, FillVal            = readMap((os.path.join(radiationCorDir,(getmapname(JULDAY,'FLAT')))),'PCRaster',logger)
     resX, resY, cols, rows, x, y, flatdir, FillVal         = readMap((os.path.join(radiationCorDir,(getmapname(JULDAY,'FLATDIR')))),'PCRaster',logger)
     resX, resY, cols, rows, x, y, cor, FillVal             = readMap((os.path.join(radiationCorDir,(getmapname(JULDAY,'COR')))),'PCRaster',logger)
     resX, resY, cols, rows, x, y, cordir, FillVal          = readMap((os.path.join(radiationCorDir,(getmapname(JULDAY,'CORDIR')))),'PCRaster',logger)
@@ -755,10 +755,10 @@ def correctPres(relevantDataFields, Pressure, highResDEM, resLowResDEM,FillVal=1
     relevantDataFields : ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
                     'NearSurfaceSpecificHumidity','SurfaceIncidentShortwaveRadiation','NearSurfaceWindSpeed']
     """
-    
+
 
     Tmean   =  relevantDataFields[0]
-              
+
 
 
     g            = 9.81         # gravitational constant [m s-2]
@@ -796,7 +796,7 @@ def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin):
     Q       =  relevantDataFields[3]
     Rsin    =  relevantDataFields[4]
     Wsp     =  relevantDataFields[5]
-              
+
     """
     Computes Penman-Monteith reference evaporation
     Inputs:
@@ -815,7 +815,7 @@ def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin):
     cp           = 1013         # specific heat of air 1013 [J kg-1 K-1]
     TimeStepSecs = 86400        # timestep in seconds
     karman       = 0.41         # von Karman constant [-]
-    vegh         = 0.12         # vegetation height [m] 
+    vegh         = 0.12         # vegetation height [m]
     alpha        = 0.23         # albedo, 0.23 [-]
     rs           = 70           # surface resistance, 70 [s m-1]
     R            = 287.058      # Universal gas constant [J kg-1 K-1]
@@ -826,7 +826,7 @@ def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin):
     R_air        = 8.3144621    # specific gas constant for dry air [J mol-1 K-1]
     Mo           = 0.0289644    # molecular weight of gas [g / mol]
     lapse_rate   = 0.006        # lapse rate [K m-1]
-    
+
     #CALCULATE EXTRATERRESTRIAL RADIATION
     #get day of year
     tt  = currentdate.timetuple()
@@ -834,12 +834,12 @@ def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin):
 #    #Latitude radians
     LatRad= lat*np.pi/180.0
     test = np.tan(LatRad)
-#    ### water euivalent extraterrestial radiation ###    
+#    ### water euivalent extraterrestial radiation ###
 #    # declination (rad)
     declin = 0.4093*(np.sin(((2.0*pi*JULDAY)/365.0)-1.405))
 #    # sunset hour angle
     arccosInput = (-(np.tan(LatRad))*(np.tan(declin)))
-#    
+#
     arccosInput = np.minimum(1,arccosInput)
     arccosInput = np.maximum(-1,arccosInput)
     sunangle = np.arccos(arccosInput)
@@ -847,7 +847,7 @@ def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin):
     distsun = 1+0.033*(np.cos((2*pi*JULDAY)/365.0))
     # Ra = water equivalent extra terrestiral radiation in MJ day-1
     Ra = ((24 * 60 * 0.082) / 3.14) * distsun * (sunangle*(np.sin(LatRad))*(np.sin(declin))+(np.cos(LatRad))*(np.cos(declin))*(np.sin(sunangle)))
-    
+
     #CALCULATE ACTUAL VAPOR PRESSURE
     # saturation vapour pressure [Pa]
     es = lambda T:610.8*np.exp((17.27*(Tmean-273.15))/((Tmean-273.15)+237.3))
@@ -859,24 +859,24 @@ def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin):
     ea = lambda Pres, Q, eps: -(Q*Pres)/((eps-1)*Q-eps)
     ea_mean = ea(Pres, Q, eps)
     ea_mean_kPa = ea_mean / 1000
-    
+
     #clear sky solar radiation MJ d-1
     Rso = np.maximum(0.1,((0.75+(2*0.00005)) * Ra))
-    
-    Rsin_MJ = 0.086400 * Rsin   
-    
+
+    Rsin_MJ = 0.086400 * Rsin
+
     Rlnet_MJ = - sigma * ((Tmax**4+Tmin**4)/2) * (0.34 - 0.14 * np.sqrt(np.maximum(0,(ea_mean_kPa)))) * (1.35*np.minimum(1,(Rsin_MJ / Rso))-0.35)
-    
+
     Rlnet_Watt = Rlnet_MJ / 0.086400
-    
+
     Rnet  = np.maximum(0,((1-alpha)*Rsin + Rlnet_Watt))
-    
+
     # vapour pressure deficit
     vpd = np.maximum(es_mean - ea_mean, 0.)
-    
+
     # density of air [kg m-3]
     rho = Pres/(Tmean*R)
-    
+
     # Latent heat [J kg-1]
     Lheat = (2.501-(0.002361*(Tmean-273.15)))*1e6
 
@@ -887,12 +887,12 @@ def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin):
 
     # psychrometric constant
     gamma   = cp*Pres/(eps*Lheat)
-    
+
     # aerodynamic resistance
     z = 10 # height of wind speed variable (10 meters above surface)
     Wsp_2 = Wsp*4.87/(np.log(67.8*z-5.42))
     ra = 208./Wsp_2
-    
+
     PETtop  = np.maximum((delta*Rnet + rho*cp*vpd/ra),1)
     PETbase = np.maximum((delta + gamma*(1+rs/ra)),1)
     PET     = np.maximum(PETtop/PETbase, 0)
@@ -902,21 +902,21 @@ def PenmanMonteith(lat, currentdate, relevantDataFields, Tmax, Tmin):
         sys.exit("Value infinity found")
     else:
         pass
-    
+
     return PETmm
-    
+
 def PriestleyTaylor(lat, currentdate, relevantDataFields, Tmax, Tmin):
-    
+
     """
     relevantDataFields : ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
                     'NearSurfaceSpecificHumidity','SurfaceIncidentShortwaveRadiation','NearSurfaceWindSpeed']
     """
-    
+
     Tmean   =  relevantDataFields[0]
     Rlin    =  relevantDataFields[1]
     Pres    =  relevantDataFields[2]
     Q       =  relevantDataFields[3]
-    Rsin    =  relevantDataFields[4]             
+    Rsin    =  relevantDataFields[4]
 
     alpha        = 0.23         # albedo, 0.23 [-]
     sigma        = 4.903e-9     # stephan boltzmann [MJ K-4 m-2 day-1]
@@ -927,9 +927,9 @@ def PriestleyTaylor(lat, currentdate, relevantDataFields, Tmax, Tmin):
     R_air        = 8.3144621    # specific gas constant for dry air [J mol-1 K-1]
     Mo           = 0.0289644    # molecular weight of gas [g / mol]
     lapse_rate   = 0.006        # lapse rate [K m-1]
-    
+
     """ http://agsys.cra-cin.it/tools/evapotranspiration/help/Priestley-Taylor.html """
-    
+
     #CALCULATE EXTRATERRESTRIAL RADIATION
     #get day of year
     tt  = currentdate.timetuple()
@@ -937,12 +937,12 @@ def PriestleyTaylor(lat, currentdate, relevantDataFields, Tmax, Tmin):
 #    #Latitude radians
     LatRad= lat*np.pi/180.0
     test = np.tan(LatRad)
-#    ### water euivalent extraterrestial radiation ###    
+#    ### water euivalent extraterrestial radiation ###
 #    # declination (rad)
     declin = 0.4093*(np.sin(((2.0*pi*JULDAY)/365.0)-1.405))
 #    # sunset hour angle
     arccosInput = (-(np.tan(LatRad))*(np.tan(declin)))
-#    
+#
     arccosInput = np.minimum(1,arccosInput)
     arccosInput = np.maximum(-1,arccosInput)
     sunangle = np.arccos(arccosInput)
@@ -950,7 +950,7 @@ def PriestleyTaylor(lat, currentdate, relevantDataFields, Tmax, Tmin):
     distsun = 1+0.033*(np.cos((2*pi*JULDAY)/365.0))
     # Ra = water equivalent extra terrestiral radiation in MJ day-1
     Ra = ((24 * 60 * 0.082) / 3.14) * distsun * (sunangle*(np.sin(LatRad))*(np.sin(declin))+(np.cos(LatRad))*(np.cos(declin))*(np.sin(sunangle)))
-    
+
     #CALCULATE ACTUAL VAPOR PRESSURE
     # saturation vapour pressure [Pa]
     es = lambda T:610.8*np.exp((17.27*(Tmean-273.15))/((Tmean-273.15)+237.3))
@@ -962,34 +962,34 @@ def PriestleyTaylor(lat, currentdate, relevantDataFields, Tmax, Tmin):
     ea = lambda Pres, Q, eps: -(Q*Pres)/((eps-1)*Q-eps)
     ea_mean = ea(Pres, Q, eps)
     ea_mean_kPa = ea_mean / 1000
-        
+
     #clear sky solar radiation MJ d-1
     Rso = np.maximum(0.1,((0.75+(2*0.00005)) * Ra))
-    
-    Rsin_MJ = 0.086400 * Rsin 
-    
+
+    Rsin_MJ = 0.086400 * Rsin
+
     Rlnet_MJ = - sigma * ((Tmax**4+Tmin**4)/2) * (0.34 - 0.14 * np.sqrt(np.maximum(0,(ea_mean_kPa)))) * (1.35*np.minimum(1,(Rsin_MJ / Rso))-0.35)
-    
+
     Rlnet_Watt = Rlnet_MJ / 0.086400
-        
-    preskPa     = Pres / 1000 
+
+    preskPa     = Pres / 1000
     latentHeat  = 2.501 - ( 0.002361 * ( Tmean - 273.15 ) ) # latent heat of vaporization (MJ kg-1)
 
     slope_exp   = (17.27*(Tmean - 273.15)) / ((Tmean - 273.15) + 237.3)
     slope_div   = ((Tmean - 273.15) + 237.3)**2
     slope       = 4098 * (0.6108 * (np.exp(slope_exp))) / slope_div
-    
+
     psychConst  = cp_pt * ( preskPa ) / (latentHeat * eps ) # psychrometric constant (kPa degreesC-1)
-          
+
     # net radiation [MJ m-2]
     Rnet  = np.maximum(0,((1-alpha) *Rsin_MJ + Rlnet_MJ))
-    
+
     PETmm = a * (1 / latentHeat) *( (slope * Rnet ) /  ( slope + psychConst ) )
-    
+
     return PETmm
-    
+
 def hargreaves(lat, currentdate, relevantDataFields, Tmax, Tmin):
-    
+
     Tmean = relevantDataFields[0]
 
     #get day of year
@@ -998,12 +998,12 @@ def hargreaves(lat, currentdate, relevantDataFields, Tmax, Tmin):
 #    #Latitude radians
     LatRad= lat*np.pi/180.0
     test = np.tan(LatRad)
-#    ### water euivalent extraterrestial radiation ###    
+#    ### water euivalent extraterrestial radiation ###
 #    # declination (rad)
     declin = 0.4093*(np.sin(((2.0*pi*JULDAY)/365.0)-1.405))
 #    # sunset hour angle
     arccosInput = (-(np.tan(LatRad))*(np.tan(declin)))
-#    
+#
     arccosInput = np.minimum(1,arccosInput)
     arccosInput = np.maximum(-1,arccosInput)
     sunangle = np.arccos(arccosInput)
@@ -1015,8 +1015,8 @@ def hargreaves(lat, currentdate, relevantDataFields, Tmax, Tmin):
 
     airT = relevantDataFields[0]
     PETmm = 0.0023*Ra*((np.maximum(0,(Tmean-273.0))) + 17.8)*sqrt(np.maximum(0,(Tmax-Tmin)))
- 
-    return Tmean
+
+    return PETmm
 
 #### MAIN ####
 
@@ -1025,7 +1025,7 @@ def main(argv=None):
     # Set all sorts of defaults.....
     serverroot = "http://wci.earth2observe.eu/thredds/dodsC/"
     wrrsetroot = "ecmwf/met_forcing_v0/"
-    
+
     #available variables with corresponding file names and standard_names as in NC files
     variables = ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
                     'NearSurfaceSpecificHumidity','Rainfall','SurfaceIncidentShortwaveRadiation','SnowfallRate','NearSurfaceWindSpeed']
@@ -1035,7 +1035,7 @@ def main(argv=None):
                         'rainfal_flux','surface_downwelling_shortwave_flux_in_air','snowfall_flux','wind_speed']
     prefixes = ["Tmean","LWdown","PSurf","Qair",\
                     "Rainf","SWdown","Snowf","Wind"]
-    
+
     #tempdir
 
     #defaults in absence of ini file
@@ -1062,20 +1062,20 @@ def main(argv=None):
         argv = sys.argv[1:]
         if len(argv) == 0:
             usage()
-            exit()   
+            exit()
     try:
         opts, args = getopt.getopt(argv, 'I:l:')
     except getopt.error, msg:
         usage(msg)
-    
+
     for o, a in opts:
         if o == '-I': inifile = a
-    
+
     logger = setlogger("e2o_calculateEvap.log","e2o_calculateEvaporation",level=loglevel)
     #logger, ch = setlogger("e2o_getvar.log","e2o_getvar",level=loglevel)
     logger.info("Reading settings from ini: " + inifile)
     theconf = iniFileSetUp(a)
-    
+
     # Read period from file
     startyear = int(configget(logger,theconf,"selection","startyear",str(startyear)))
     endyear = int(configget(logger,theconf,"selection","endyear",str(endyear)))
@@ -1085,8 +1085,8 @@ def main(argv=None):
     startday = int(configget(logger,theconf,"selection","startday",str(startday)))
     start = datetime.datetime(startyear,startmonth,startday)
     end = datetime.datetime(endyear,endmonth,endday)
-        
-    #read remaining settings from in file        
+
+    #read remaining settings from in file
     lonmax = float(configget(logger,theconf,"selection","lonmax",str(lonmax)))
     lonmin = float(configget(logger,theconf,"selection","lonmin",str(lonmin)))
     latmax = float(configget(logger,theconf,"selection","latmax",str(latmax)))
@@ -1107,6 +1107,7 @@ def main(argv=None):
 
     # Check whether downscaling should be applied
     downscaling   = configget(logger,theconf,"selection","downscaling",downscaling)
+    downscaling   = configget(logger,theconf,"selection","resampling",resampling)
     if downscaling == 'True':
         #get grid info
         resX, resY, cols, rows, highResLon, highResLat, highResDEM, FillVal = readMap(FNhighResDEM,'GTiff',logger)
@@ -1124,6 +1125,7 @@ def main(argv=None):
 
         lowResDEM[Lmismask] = FillVal
         elevationCorrection = highResDEM - resLowResDEM
+        #writeMap("0.MAP","PCRaster",lowResLon,lowResLat,lowResDEM,FillVal)
 
         #writeMap("1.MAP","PCRaster",highResLon,highResLat,resLowResDEM,FillVal)
         #writeMap("2.MAP","PCRaster",highResLon,highResLat,elevationCorrection,FillVal)
@@ -1135,16 +1137,16 @@ def main(argv=None):
 
     if calculateEvap == 'True':
         evapMethod      = configget(logger,theconf,"selection","evapMethod",evapMethod)
-                
+
     if evapMethod == 'PenmanMonteith':
         relevantVars = ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
-                    'NearSurfaceSpecificHumidity','SurfaceIncidentShortwaveRadiation','NearSurfaceWindSpeed']        
+                    'NearSurfaceSpecificHumidity','SurfaceIncidentShortwaveRadiation','NearSurfaceWindSpeed']
     elif evapMethod == 'Hargreaves':
         relevantVars = ['Temperature']
     elif evapMethod == 'PriestleyTaylor':
         relevantVars = ['Temperature','DownwellingLongWaveRadiation','SurfaceAtmosphericPressure',\
                     'NearSurfaceSpecificHumidity','SurfaceIncidentShortwaveRadiation']
-        
+
     currentdate = start
     ncnt = 0
     while currentdate <= end:
@@ -1164,30 +1166,36 @@ def main(argv=None):
                         logger.info("Get file list..")
                         tlist, timelist = get_times_daily(currentdate,currentdate,serverroot, wrrsetroot, filename,logger)
                         logger.info("Get dates..")
-    
+
                         ncstepobj = getstepdaily(tlist,BB,standard_name,logger)
-    
+
                         logger.info("Get data...: " + str(timelist))
                         mstack = ncstepobj.getdates(timelist)
-                        mean_as_map = mstack.mean(axis=0)
+                        mean_as_map = flipud(mstack.mean(axis=0))
+                        print i
+                        print variables[i]
+                        tmp = resample_grid(mean_as_map,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method='nearest',FillVal=FillVal)
+
+                        save_as_mapsstack_per_day(highResLat,highResLon,tmp,int(ncnt),odir,prefix=str(i),oformat=oformat,FillVal=FillVal)
+
                         logger.info("Get data body...")
                         if downscaling == 'True':
                             logger.info("Downscaling..." + variables[i])
                             #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,mean_as_map,int(ncnt),'temp',prefixes[i],oformat='GTiff')
                             #mean_as_map = resample(FNhighResDEM,prefixes[i],int(ncnt),logger)
                             mean_as_map = resample_grid(mean_as_map,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method='linear',FillVal=FillVal)
-                            mean_as_map = flipud(mean_as_map)
+                            #mean_as_map = flipud(mean_as_map)
                             mean_as_map[mismask] = FillVal
                             if variables[i]     == 'Temperature':
                                 mean_as_map     = correctTemp(mean_as_map,elevationCorrection)
                             if variables[i]     == 'SurfaceIncidentShortwaveRadiation':
-                                mean_as_map, Kc, Atm     = correctRsin(mean_as_map,currentdate,radcordir,highResDEM, resLowResDEMNear, logger)
+                                mean_as_map, Kc    = correctRsin(mean_as_map,currentdate,radcordir, logger)
                             if variables[i]     == 'SurfaceAtmosphericPressure':
                                 mean_as_map     = correctPres(relevantDataFields, mean_as_map, highResDEM, resLowResDEMNear,FillVal=FillVal)
                             mean_as_map[mismask] = FillVal
 
                         relevantDataFields.append(mean_as_map)
-                                            
+
                         #only needed once
                         if nrcalls ==0:
                             nrcalls = nrcalls + 1
@@ -1196,7 +1204,7 @@ def main(argv=None):
                             LATITUDE = np.ones(((2*(latmax-latmin)),(2*(lonmax-lonmin))))
                             for i in range (0,int((2*(lonmax-lonmin)))):
                                 LATITUDE[:,i]=LATITUDE[:,i]*latitude
-                            if downscaling == 'True':    
+                            if downscaling == 'True':
                                 #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,LATITUDE,int(ncnt),'temp','lat',oformat=oformat)
                                 #LATITUDE = resample(FNhighResDEM,'lat',int(ncnt),logger)
                                 LATITUDE = zeros_like(highResDEM)
@@ -1205,15 +1213,15 @@ def main(argv=None):
 
 
                             #assign longitudes and lattitudes grids
-                            if downscaling == 'True':  
+                            if downscaling == 'True':
                                 lons = highResLon
                                 lats = highResLat
                             else:
                                 lons = ncstepobj.lon
                                 lats = ncstepobj.lat
-    
+
             if evapMethod == 'PenmanMonteith':
-    
+
                 mapname = os.path.join(odir,getmapname(ncnt,oprefix))
                 if os.path.exists(mapname):
                     logger.info("Skipping map: " + mapname)
@@ -1222,7 +1230,7 @@ def main(argv=None):
                     filename = 'Tair_E2OBS_'
                     standard_name = 'air_temperature'
                     timestepSeconds = 10800
-                
+
                     tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )
                     ncstepobj = getstep(tlist,BB,standard_name,timestepSeconds,logger)
                     mstack = ncstepobj.getdates(timelist)
@@ -1255,9 +1263,9 @@ def main(argv=None):
                         save_as_mapsstack_per_day(lats,lons,relevantDataFields[5],int(ncnt),odir,prefix='WIN',oformat=oformat,FillVal=FillVal)
                         save_as_mapsstack_per_day(lats,lons,relevantDataFields[0],int(ncnt),odir,prefix='TEMP',oformat=oformat,FillVal=FillVal)
                         save_as_mapsstack_per_day(lats,lons,Kc,int(ncnt),odir,prefix='KC',oformat=oformat,FillVal=FillVal)
-                        save_as_mapsstack_per_day(lats,lons,Atm,int(ncnt),odir,prefix='ATM',oformat=oformat,FillVal=FillVal)
+                        #save_as_mapsstack_per_day(lats,lons,Atm,int(ncnt),odir,prefix='ATM',oformat=oformat,FillVal=FillVal)
 
-                  
+
             if evapMethod == 'PriestleyTaylor':
                 mapname = os.path.join(odir,getmapname(ncnt,oprefix))
                 if os.path.exists(mapname):
@@ -1267,7 +1275,7 @@ def main(argv=None):
                     filename = 'Tair_E2OBS_'
                     standard_name = 'air_temperature'
                     timestepSeconds = 10800
-                
+
                     tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )
                     ncstepobj = getstep(tlist,BB,standard_name,timestepSeconds,logger)
                     mstack = ncstepobj.getdates(timelist)
@@ -1304,7 +1312,7 @@ def main(argv=None):
                     filename = 'Tair_E2OBS_'
                     standard_name = 'air_temperature'
                     timestepSeconds = 10800
-    
+
                     logger.info("Get times 3 hr data..")
                     tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )
                     logger.info("Get actual 3hr data...")
@@ -1319,13 +1327,13 @@ def main(argv=None):
                         tmax = correctTemp(tmax,elevationCorrection)
                         tmax[mismask] = FillVal
                         tmin[mismask] = FillVal
-                        
+
                     logger.info("Start hargreaves..")
                     PETmm = hargreaves(LATITUDE,currentdate,relevantDataFields, tmax, tmin)
                     PETmm[mismask] = FillVal
                     PETmm[PETmm < -10.0] = FillVal
                     PETmm[PETmm > 135.0] = FillVal
-    
+
                     logger.info("Saving Hargreaves PET data for: " +str(currentdate))
 
                     save_as_mapsstack_per_day(lats,lons,PETmm,int(ncnt),odir,prefix=oprefix,oformat=oformat,FillVal=FillVal)
@@ -1336,9 +1344,9 @@ def main(argv=None):
 
         else:
             pass
-        
-        currentdate += datetime.timedelta(days=1)       
-    
+
+        currentdate += datetime.timedelta(days=1)
+
     logger.info("Done.")
 
 if __name__ == "__main__":
