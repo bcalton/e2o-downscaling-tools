@@ -1055,6 +1055,8 @@ def main(argv=None):
     calculateEvap = False
     evapMethod = None
     downscaling = None
+    resampling = None
+
     nrcalls = 0
     loglevel=logging.INFO
 
@@ -1106,9 +1108,11 @@ def main(argv=None):
     saveAllData = int(configget(logger,theconf,"output","saveall","0"))
 
     # Check whether downscaling should be applied
+    resamplingtype   = configget(logger,theconf,"selection","resamplingtype","linear")
     downscaling   = configget(logger,theconf,"selection","downscaling",downscaling)
-    downscaling   = configget(logger,theconf,"selection","resampling",resampling)
-    if downscaling == 'True':
+    resampling   = configget(logger,theconf,"selection","resampling",resampling)
+
+    if downscaling == 'True' or resampling =="True":
         #get grid info
         resX, resY, cols, rows, highResLon, highResLat, highResDEM, FillVal = readMap(FNhighResDEM,'GTiff',logger)
         LresX, LresY, Lcols, Lrows, lowResLon, lowResLat, lowResDEM, FillVal = readMap(FNlowResDEM,'GTiff',logger)
@@ -1120,7 +1124,7 @@ def main(argv=None):
         Lmismask=lowResDEM == FillVal
         # Fille gaps in high res DEM with Zeros for ineterpolation purposes
         lowResDEM[Lmismask] = 0.0
-        resLowResDEM = resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method='linear',FillVal=0.0)
+        resLowResDEM = resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method=resamplingtype,FillVal=0.0)
         resLowResDEMNear = resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method='nearest',FillVal=0.0)
 
         lowResDEM[Lmismask] = FillVal
@@ -1179,19 +1183,20 @@ def main(argv=None):
                         save_as_mapsstack_per_day(highResLat,highResLon,tmp,int(ncnt),odir,prefix=str(i),oformat=oformat,FillVal=FillVal)
 
                         logger.info("Get data body...")
-                        if downscaling == 'True':
+                        if downscaling == 'True' or resampling =="True":
                             logger.info("Downscaling..." + variables[i])
                             #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,mean_as_map,int(ncnt),'temp',prefixes[i],oformat='GTiff')
                             #mean_as_map = resample(FNhighResDEM,prefixes[i],int(ncnt),logger)
-                            mean_as_map = resample_grid(mean_as_map,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method='linear',FillVal=FillVal)
+                            mean_as_map = resample_grid(mean_as_map,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
                             #mean_as_map = flipud(mean_as_map)
                             mean_as_map[mismask] = FillVal
-                            if variables[i]     == 'Temperature':
-                                mean_as_map     = correctTemp(mean_as_map,elevationCorrection)
-                            if variables[i]     == 'SurfaceIncidentShortwaveRadiation':
-                                mean_as_map, Kc    = correctRsin(mean_as_map,currentdate,radcordir, logger)
-                            if variables[i]     == 'SurfaceAtmosphericPressure':
-                                mean_as_map     = correctPres(relevantDataFields, mean_as_map, highResDEM, resLowResDEMNear,FillVal=FillVal)
+                            if downscaling == "True":
+                                if variables[i]     == 'Temperature':
+                                    mean_as_map     = correctTemp(mean_as_map,elevationCorrection)
+                                if variables[i]     == 'SurfaceIncidentShortwaveRadiation':
+                                    mean_as_map, Kc    = correctRsin(mean_as_map,currentdate,radcordir, logger)
+                                if variables[i]     == 'SurfaceAtmosphericPressure':
+                                    mean_as_map     = correctPres(relevantDataFields, mean_as_map, highResDEM, resLowResDEMNear,FillVal=FillVal)
                             mean_as_map[mismask] = FillVal
 
                         relevantDataFields.append(mean_as_map)
@@ -1204,7 +1209,7 @@ def main(argv=None):
                             LATITUDE = np.ones(((2*(latmax-latmin)),(2*(lonmax-lonmin))))
                             for i in range (0,int((2*(lonmax-lonmin)))):
                                 LATITUDE[:,i]=LATITUDE[:,i]*latitude
-                            if downscaling == 'True':
+                            if downscaling == 'True' or resampling == "True":
                                 #save_as_mapsstack_per_day(ncstepobj.lat,ncstepobj.lon,LATITUDE,int(ncnt),'temp','lat',oformat=oformat)
                                 #LATITUDE = resample(FNhighResDEM,'lat',int(ncnt),logger)
                                 LATITUDE = zeros_like(highResDEM)
@@ -1213,7 +1218,7 @@ def main(argv=None):
 
 
                             #assign longitudes and lattitudes grids
-                            if downscaling == 'True':
+                            if downscaling == 'True' or resampling == "True":
                                 lons = highResLon
                                 lats = highResLat
                             else:
@@ -1236,11 +1241,12 @@ def main(argv=None):
                     mstack = ncstepobj.getdates(timelist)
                     tmin = flipud(mstack.min(axis=0))
                     tmax = flipud(mstack.max(axis=0))
-                    if downscaling == 'True':
-                        tmin = resample_grid(tmin,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method='linear',FillVal=FillVal)
-                        tmax = resample_grid(tmax,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method='linear',FillVal=FillVal)
-                        tmin = correctTemp(tmin,elevationCorrection)
-                        tmax = correctTemp(tmax,elevationCorrection)
+                    if downscaling == 'True' or resampling == "True":
+                        tmin = resample_grid(tmin,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
+                        tmax = resample_grid(tmax,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
+                        if downscaling == "True":
+                            tmin = correctTemp(tmin,elevationCorrection)
+                            tmax = correctTemp(tmax,elevationCorrection)
                         tmax[mismask] = FillVal
                         tmin[mismask] = FillVal
 
@@ -1262,8 +1268,6 @@ def main(argv=None):
                         save_as_mapsstack_per_day(lats,lons,relevantDataFields[4],int(ncnt),odir,prefix='RSIN',oformat=oformat,FillVal=FillVal)
                         save_as_mapsstack_per_day(lats,lons,relevantDataFields[5],int(ncnt),odir,prefix='WIN',oformat=oformat,FillVal=FillVal)
                         save_as_mapsstack_per_day(lats,lons,relevantDataFields[0],int(ncnt),odir,prefix='TEMP',oformat=oformat,FillVal=FillVal)
-                        save_as_mapsstack_per_day(lats,lons,Kc,int(ncnt),odir,prefix='KC',oformat=oformat,FillVal=FillVal)
-                        #save_as_mapsstack_per_day(lats,lons,Atm,int(ncnt),odir,prefix='ATM',oformat=oformat,FillVal=FillVal)
 
 
             if evapMethod == 'PriestleyTaylor':
@@ -1281,11 +1285,12 @@ def main(argv=None):
                     mstack = ncstepobj.getdates(timelist)
                     tmin = mstack.min(axis=0)
                     tmax = mstack.max(axis=0)
-                    if downscaling == 'True':
-                        tmin = resample_grid(tmin,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method='linear',FillVal=FillVal)
-                        tmax = resample_grid(tmax,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method='linear',FillVal=FillVal)
-                        tmin = correctTemp(tmin,elevationCorrection)
-                        tmax = correctTemp(tmax,elevationCorrection)
+                    if downscaling == 'True' or resampling == "True":
+                        tmin = resample_grid(tmin,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
+                        tmax = resample_grid(tmax,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
+                        if downscaling == "True":
+                            tmin = correctTemp(tmin,elevationCorrection)
+                            tmax = correctTemp(tmax,elevationCorrection)
                         tmax[mismask] = FillVal
                         tmin[mismask] = FillVal
 
@@ -1320,11 +1325,12 @@ def main(argv=None):
                     mstack = ncstepobj.getdates(timelist)
                     tmin = mstack.min(axis=0)
                     tmax = mstack.max(axis=0)
-                    if downscaling == 'True':
-                        tmin = resample_grid(tmin,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method='linear',FillVal=FillVal)
-                        tmax = resample_grid(tmax,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method='linear',FillVal=FillVal)
-                        tmin = correctTemp(tmin,elevationCorrection)
-                        tmax = correctTemp(tmax,elevationCorrection)
+                    if downscaling == 'True' or resampling == "True":
+                        tmin = resample_grid(tmin,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
+                        tmax = resample_grid(tmax,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
+                        if resampling == "True":
+                            tmin = correctTemp(tmin,elevationCorrection)
+                            tmax = correctTemp(tmax,elevationCorrection)
                         tmax[mismask] = FillVal
                         tmin[mismask] = FillVal
 
