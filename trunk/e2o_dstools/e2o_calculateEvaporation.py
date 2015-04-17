@@ -470,19 +470,7 @@ class getstep():
         return ret
 
 
-def getmapname(number,prefix):
-    """
-    generate a pcraster type mapname based on timestep and prefix
-    :var number: number of the mape
-    :var prefix: prefix for the map
 
-    :return: Name
-    """
-    below_thousand = number % 1000
-    above_thousand = number / 1000
-    mapname = str(prefix + '%0' + str(8-len(prefix)) + '.f.%03.f') % (above_thousand, below_thousand)
-
-    return mapname
 
 def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaster"):
 
@@ -513,168 +501,6 @@ def save_as_gtiff(lat,lon,data,ncnt,directory,prefix,oformat='GTiff'):
     #print "saving map: " + os.path.join(directory,mapname)
     writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[:,:]),-999.0)
 
-
-def resample(highResdemname,prefix,ncnt,logger):
-    """
-
-    :param highResdemname:
-    :param prefix:
-    :param ncnt: map to resample
-    :param logger:
-    :return: resampled map
-    """
-
-    #create resample dir
-    try:
-        os.stat('resampled')
-    except:
-        os.mkdir('resampled')
-
-    tif_mapname         = prefix+'.tif'
-    pcraster_mapname    = getmapname(ncnt,prefix)
-
-    tif_filename        = os.path.join('temp',tif_mapname)
-    pcraster_filename   = os.path.join('temp',pcraster_mapname)
-    pcraster_resFilename   = os.path.join('resampled',pcraster_mapname)
-
-    command= 'gdal_translate -of %s %s %s' % ('GTiff',pcraster_filename,tif_filename)
-    os.system(command)
-
-    # Source
-    src_filename    = os.path.join('temp',tif_mapname)
-    src             = gdal.Open(src_filename, gdalconst.GA_ReadOnly)
-    src_proj        = src.GetProjection()
-    src_geotrans    = src.GetGeoTransform()
-
-    # We want a section of source that matches this:
-    match_filename  = highResdemname
-    match_ds        = gdal.Open(match_filename, gdalconst.GA_ReadOnly)
-    match_proj      = match_ds.GetProjection()
-    match_geotrans  = match_ds.GetGeoTransform()
-    wide            = match_ds.RasterXSize
-    high            = match_ds.RasterYSize
-
-    # Output / destination
-    dst_filename = os.path.join('resampled',tif_mapname)
-    dst = gdal.GetDriverByName('GTiff').Create(dst_filename, wide, high, 1, gdalconst.GDT_Float32)
-    dst.SetGeoTransform( match_geotrans )
-    dst.SetProjection( match_proj)
-
-    # Do the work
-    gdal.ReprojectImage(src, dst, src_proj, match_proj, gdalconst.GRA_NearestNeighbour)
-
-    del dst # Flush
-
-    resX, resY, cols, rows, x, y, data, FillVal = readMap(dst_filename,'GTiff',logger)
-
-    # nodig?? data    = np.flipud(dataUD)
-
-    return data
-
-def resampleDEM(nameHighResDEM, nameLowResDEM,logger):
-    """
-
-    :param nameHighResDEM:
-    :param nameLowResDEM:
-    :param logger:
-    :return: elevationcorrection, hiresdem, upscaled_lowresdem
-    """
-
-    #create temp dir
-    try:
-        os.stat('temp')
-    except:
-        os.mkdir('temp')
-
-    # Source
-    src_filename    = nameLowResDEM
-    src             = gdal.Open(src_filename, gdalconst.GA_ReadOnly)
-    src_proj        = src.GetProjection()
-    src_geotrans    = src.GetGeoTransform()
-
-    # We want a section of source that matches this:
-    match_filename  = nameHighResDEM
-    match_ds        = gdal.Open(match_filename, gdalconst.GA_ReadOnly)
-    match_proj      = match_ds.GetProjection()
-    match_geotrans  = match_ds.GetGeoTransform()
-    wide            = match_ds.RasterXSize
-    high            = match_ds.RasterYSize
-
-    # Output / destination
-    dst_filename = os.path.join('temp','DEM.tif')
-    dst = gdal.GetDriverByName('GTiff').Create(dst_filename, wide, high, 1, gdalconst.GDT_Float32)
-    dst.SetGeoTransform( match_geotrans )
-    dst.SetProjection( match_proj)
-
-    # Do the work
-    gdal.ReprojectImage(src, dst, src_proj, match_proj, gdalconst.GRA_NearestNeighbour)
-
-    del dst # Flush
-
-    resX, resY, cols, rows, XI, YI, resLowResDEM, FillVal = readMap(dst_filename,'GTiff',logger)
-    resX, resY, cols, rows, XI, YI, highResDEM, FillVal = readMap(match_filename,'GTiff',logger)
-
-    highResDEM  = np.maximum(0,highResDEM)
-    elevationCorrection = highResDEM - resLowResDEM
-
-    return elevationCorrection, highResDEM, resLowResDEM
-
-def resample(highResdemname,prefix,ncnt,logger):
-    """
-
-    :param highResdemname:
-    :param prefix:
-    :param ncnt: map to resample
-    :param logger:
-    :return: resampled map
-    """
-
-    #create resample dir
-    try:
-        os.stat('resampled')
-    except:
-        os.mkdir('resampled')
-
-    tif_mapname         = prefix+'.tif'
-    pcraster_mapname    = getmapname(ncnt,prefix)
-
-    tif_filename        = os.path.join('temp',tif_mapname)
-    pcraster_filename   = os.path.join('temp',pcraster_mapname)
-    pcraster_resFilename   = os.path.join('resampled',pcraster_mapname)
-
-    command= 'gdal_translate -of %s %s %s' % ('GTiff',pcraster_filename,tif_filename)
-    os.system(command)
-
-    # Source
-    src_filename    = os.path.join('temp',tif_mapname)
-    src             = gdal.Open(src_filename, gdalconst.GA_ReadOnly)
-    src_proj        = src.GetProjection()
-    src_geotrans    = src.GetGeoTransform()
-
-    # We want a section of source that matches this:
-    match_filename  = highResdemname
-    match_ds        = gdal.Open(match_filename, gdalconst.GA_ReadOnly)
-    match_proj      = match_ds.GetProjection()
-    match_geotrans  = match_ds.GetGeoTransform()
-    wide            = match_ds.RasterXSize
-    high            = match_ds.RasterYSize
-
-    # Output / destination
-    dst_filename = os.path.join('resampled',tif_mapname)
-    dst = gdal.GetDriverByName('GTiff').Create(dst_filename, wide, high, 1, gdalconst.GDT_Float32)
-    dst.SetGeoTransform( match_geotrans )
-    dst.SetProjection( match_proj)
-
-    # Do the work
-    gdal.ReprojectImage(src, dst, src_proj, match_proj, gdalconst.GRA_NearestNeighbour)
-
-    del dst # Flush
-
-    resX, resY, cols, rows, x, y, data, FillVal = readMap(dst_filename,'GTiff',logger)
-
-    # nodig?? data    = np.flipud(dataUD)
-
-    return data
 
 def correctTemp(Temp,elevationCorrection):
 
@@ -732,10 +558,10 @@ def correctRsin(Rsin,currentdate,radiationCorDir,logger):
     #ratio           = flatdir / flat
     # Determine clear sky factor
     Rsin = Rsin * optcoradjust
-    Kc = Rsin/flat
+    Kc = minimum(1.0,Rsin/maximum(0.0001,flat))
     Rsin_dir        = Kc * Rsin
     #corrected Rsin direct for elevation and slope
-    Rsin_dir_cor    = (cordir/flatdir)*Rsin_dir
+    Rsin_dir_cor    = (cordir/maximum(0.0001,flatdir))*Rsin_dir
     Rsin_cor        = Rsin_dir_cor + (Rsin - Rsin_dir)
     Rsin_cor[missmask] = FillVal
     Rsin_cor[Rsin_cor < 0.0] = FillVal
@@ -758,8 +584,6 @@ def correctPres(relevantDataFields, Pressure, highResDEM, resLowResDEM,FillVal=1
 
 
     Tmean   =  relevantDataFields[0]
-
-
 
     g            = 9.81         # gravitational constant [m s-2]
     R_air        = 8.3144621    # specific gas constant for dry air [J mol-1 K-1]
@@ -1112,7 +936,7 @@ def main(argv=None):
     resampling   = configget(logger,theconf,"selection","resampling",resampling)
 
     if downscaling == 'True' or resampling =="True":
-        #get grid info
+        # get grid info
         resX, resY, cols, rows, highResLon, highResLat, highResDEM, FillVal = readMap(FNhighResDEM,'GTiff',logger)
         LresX, LresY, Lcols, Lrows, lowResLon, lowResLat, lowResDEM, FillVal = readMap(FNlowResDEM,'GTiff',logger)
         #writeMap("DM.MAP","PCRaster",highResLon,highResLat,highResDEM,FillVal)
@@ -1124,10 +948,9 @@ def main(argv=None):
         # Fille gaps in high res DEM with Zeros for ineterpolation purposes
         lowResDEM[Lmismask] = 0.0
         resLowResDEM = resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method=resamplingtype,FillVal=0.0)
-        resLowResDEMNear = resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method='nearest',FillVal=0.0)
 
         lowResDEM[Lmismask] = FillVal
-        elevationCorrection = highResDEM - resLowResDEMNear
+        elevationCorrection = highResDEM - resLowResDEM
 
 
 
@@ -1174,9 +997,9 @@ def main(argv=None):
                         logger.info("Get data...: " + str(timelist))
                         mstack = ncstepobj.getdates(timelist)
                         mean_as_map = flipud(mstack.mean(axis=0))
-                        tmp = resample_grid(mean_as_map,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method='nearest',FillVal=FillVal)
+                        #tmp = resample_grid(mean_as_map,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method='nearest',FillVal=FillVal)
 
-                        save_as_mapsstack_per_day(highResLat,highResLon,tmp,int(ncnt),odir,prefix=str(i),oformat=oformat,FillVal=FillVal)
+                        #save_as_mapsstack_per_day(highResLat,highResLon,tmp,int(ncnt),odir,prefix=str(i),oformat=oformat,FillVal=FillVal)
 
                         logger.info("Get data body...")
                         if downscaling == 'True' or resampling =="True":
@@ -1192,7 +1015,7 @@ def main(argv=None):
                                 if variables[i]     == 'SurfaceIncidentShortwaveRadiation':
                                     mean_as_map, Kc    = correctRsin(mean_as_map,currentdate,radcordir, logger)
                                 if variables[i]     == 'SurfaceAtmosphericPressure':
-                                    mean_as_map     = correctPres(relevantDataFields, mean_as_map, highResDEM, resLowResDEMNear,FillVal=FillVal)
+                                    mean_as_map     = correctPres(relevantDataFields, mean_as_map, highResDEM, resLowResDEM,FillVal=FillVal)
                             mean_as_map[mismask] = FillVal
 
                         relevantDataFields.append(mean_as_map)
@@ -1222,8 +1045,6 @@ def main(argv=None):
                                 lats = ncstepobj.lat
 
             if evapMethod == 'PenmanMonteith':
-                print "-- time: " + str(currentdate)
-                print "-- var: " + str(i)
                 mapname = os.path.join(odir,getmapname(ncnt,oprefix))
                 if os.path.exists(mapname):
                     logger.info("Skipping map: " + mapname)
@@ -1265,6 +1086,7 @@ def main(argv=None):
                         save_as_mapsstack_per_day(lats,lons,relevantDataFields[4],int(ncnt),odir,prefix='RSIN',oformat=oformat,FillVal=FillVal)
                         save_as_mapsstack_per_day(lats,lons,relevantDataFields[5],int(ncnt),odir,prefix='WIN',oformat=oformat,FillVal=FillVal)
                         save_as_mapsstack_per_day(lats,lons,relevantDataFields[0],int(ncnt),odir,prefix='TEMP',oformat=oformat,FillVal=FillVal)
+                        save_as_mapsstack_per_day(lats,lons,Kc,int(ncnt),odir,prefix='KC',oformat=oformat,FillVal=FillVal)
 
 
             if evapMethod == 'PriestleyTaylor':

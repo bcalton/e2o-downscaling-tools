@@ -403,7 +403,7 @@ def main(argv=None):
     if "notset" not in lowresdem:
         LresX, LresY, Lcols, Lrows, lowResLon, lowResLat, lowResDEM, FillVal = e2o_utils.readMap(lowresdem,'GTiff',logger)
         resX, resY, cols, rows, highResLon, highResLat, highResDEM, FillVal = e2o_utils.readMap(thedem,'GTiff',logger)
-        resLowResDEMNear = e2o_utils.resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method='nearest',FillVal=0.0)
+        resLowResDEMNear = e2o_utils.resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method='linear',FillVal=0.0)
         Altdem = numpy2pcr(Scalar,resLowResDEMNear,FillVal)
     else:
         Altdem = dem

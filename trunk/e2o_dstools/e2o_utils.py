@@ -107,7 +107,7 @@ def writeMap(fileName, fileFormat, x, y, data, FillVal):
     # Create data to write to correct format (supported by 'CreateCopy')
     if verbose:
         print 'Writing to ' + fileName + '.map'
-    outDataset = driver2.CreateCopy(fileName, TempDataset, 0)
+    outDataset = driver2.CreateCopy(fileName, TempDataset, 0,options = [ 'COMPRESS=LZW' ])
     TempDataset = None
     outDataset = None
     if verbose:
@@ -225,6 +225,20 @@ def closeLogger(logger, ch):
     return logger, ch
 
 
+def getmapname(number,prefix):
+    """
+    generate a pcraster type mapname based on timestep and prefix
+    :var number: number of the mape
+    :var prefix: prefix for the map
+
+    :return: Name
+    """
+    below_thousand = number % 1000
+    above_thousand = number / 1000
+    mapname = str(prefix + '%0' + str(8-len(prefix)) + '.f.%03.f') % (above_thousand, below_thousand)
+
+    return mapname
+
 
 def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest',FillVal=1E31):
     """
@@ -238,7 +252,7 @@ def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest',FillVal=1E31):
     :param Yin: Y-coordinates of all columns (e.g. from readMap)
     :param Xout: X-coordinates of all columns in the new map (e.g. from readMap)
     :param Yout: Y-coordinates of all columns in the new map (e.g. from readMap)
-    :param method: linear, nearest, cubic, quintic
+    :param method: linear, nearest, [cubic, quintic <- switched off for now]
     :param FillVal: Value for the missing values
 
     :return: datablock of new grid.
@@ -263,14 +277,18 @@ def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest',FillVal=1E31):
 
         # interpolate
         res = interobj(yx_outpoints)
-    elif method in 'cubic quintic':
-        interobj = interpolate.interp2d(Xin, Ysrt, gridZ_in,  kind=method, bounds_error=False)
-        res = interobj(Xout, Yout)
+        result = reshape(res, (len(Yout), len(Xout)))
+        result[isnan(result)] = FillVal
+    # elif method in 'cubic quintic':
+    #     interobj = interpolate.interp2d(Xin, Ysrt, gridZ_in,  kind=method, bounds_error=False)
+    #     res = interobj(Xout, Yout)
+    #     result = reshape(res, (len(Yout), len(Xout)))
+    #     result[isnan(result)] = FillVal
+    #     res = flipud(res)
     else:
         raise ValueError("Interpolation method " + method + " not known.")
 
     #reshape to the new grid
-    result = reshape(res, (len(Yout), len(Xout)))
-    result[isnan(result)] = FillVal
+
     
     return result
