@@ -1020,21 +1020,6 @@ def hargreaves(lat, currentdate, relevantDataFields, Tmax, Tmin):
 
 #### MAIN ####
 
-def PM_Process():
-    """
-    Get data for each timestep
-
-    :return:
-    """
-
-def HR_Process():
-    """
-    Get data for each timestep
-
-    :return:
-    """
-
-
 
 def main(argv=None):
 
