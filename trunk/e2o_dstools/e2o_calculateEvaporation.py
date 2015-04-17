@@ -1020,6 +1020,22 @@ def hargreaves(lat, currentdate, relevantDataFields, Tmax, Tmin):
 
 #### MAIN ####
 
+def PM_Process():
+    """
+    Get data for each timestep
+
+    :return:
+    """
+
+def HR_Process():
+    """
+    Get data for each timestep
+
+    :return:
+    """
+
+
+
 def main(argv=None):
 
     # Set all sorts of defaults.....
@@ -1039,8 +1055,6 @@ def main(argv=None):
     #tempdir
 
     #defaults in absence of ini file
-    filename = "Tair_daily_E2OBS_"
-    standard_name ='air_temperature'
     startyear = 1980
     endyear= 1980
     startmonth = 1
@@ -1128,12 +1142,8 @@ def main(argv=None):
         resLowResDEMNear = resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method='nearest',FillVal=0.0)
 
         lowResDEM[Lmismask] = FillVal
-        elevationCorrection = highResDEM - resLowResDEM
-        #writeMap("0.MAP","PCRaster",lowResLon,lowResLat,lowResDEM,FillVal)
+        elevationCorrection = highResDEM - resLowResDEMNear
 
-        #writeMap("1.MAP","PCRaster",highResLon,highResLat,resLowResDEM,FillVal)
-        #writeMap("2.MAP","PCRaster",highResLon,highResLat,elevationCorrection,FillVal)
-        #writeMap("3.MAP","PCRaster",highResLon,highResLat,highResDEM,FillVal)
 
 
     #Check whether evaporation should be calculated
@@ -1158,14 +1168,17 @@ def main(argv=None):
         if ncnt > 0:
             # Get all daily datafields needed and aad to list
             relevantDataFields = []
+
+            # Get all data fro this timestep
             for i in range (0,len(variables)):
                 if variables[i] in relevantVars:
                     mapname = os.path.join(odir,getmapname(ncnt,oprefix))
                     if os.path.exists(mapname):
                         logger.info("Skipping map: " + mapname)
                     else:
-                        logger.info("Getting data field: " + filename)
+
                         filename = filenames[i]
+                        logger.info("Getting data field: " + filename)
                         standard_name = standard_names[i]
                         logger.info("Get file list..")
                         tlist, timelist = get_times_daily(currentdate,currentdate,serverroot, wrrsetroot, filename,logger)
@@ -1176,8 +1189,6 @@ def main(argv=None):
                         logger.info("Get data...: " + str(timelist))
                         mstack = ncstepobj.getdates(timelist)
                         mean_as_map = flipud(mstack.mean(axis=0))
-                        print i
-                        print variables[i]
                         tmp = resample_grid(mean_as_map,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method='nearest',FillVal=FillVal)
 
                         save_as_mapsstack_per_day(highResLat,highResLon,tmp,int(ncnt),odir,prefix=str(i),oformat=oformat,FillVal=FillVal)
@@ -1226,7 +1237,8 @@ def main(argv=None):
                                 lats = ncstepobj.lat
 
             if evapMethod == 'PenmanMonteith':
-
+                print "-- time: " + str(currentdate)
+                print "-- var: " + str(i)
                 mapname = os.path.join(odir,getmapname(ncnt,oprefix))
                 if os.path.exists(mapname):
                     logger.info("Skipping map: " + mapname)
