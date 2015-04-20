@@ -1,6 +1,14 @@
 e2o_getvar - retrieve variables
 ===============================
 
+e2o_getval gett variables from the server for a specific region (specified in the ini file)
+and optionally resamples those to a specified Digital Elevation Model (DEM).
+
+Usage:
+::
+
+    e2o_getvar.py -I the_ini_file
+
 
 ini file configuration
 ----------------------

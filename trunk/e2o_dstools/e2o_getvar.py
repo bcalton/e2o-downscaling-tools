@@ -175,10 +175,7 @@ def main(argv=None):
 
             #print unique(tlist.values())
             mstack = ncstepobj.getdates(timelist)
-        
-            mean_as_series = (mstack.mean(axis=1).mean(axis=1))
-            mean_as_map = mstack.mean(axis=0)
-            
+
             logger.info("Saving " + ncstepobj.varname + " to mapstack " + odir + oprefix)
 
 
@@ -186,12 +183,12 @@ def main(argv=None):
             for a in timelist:
                 mapname = getmapname(cnt+1,oprefix)
 
-                if resampling =="True":
+                if resampling == "True":
                     newdata = resample_grid(flipud(mstack[cnt,:,:]),ncstepobj.lon,ncstepobj.lat, xhires,yhires,method=interpolmethod)
                     if downscaling == "True":
-                        print " Not yet done..."
+                        raise ValueError "Downscaling not implemented"
 
-                        # Mak downscale function, input resampled grid, orig dem also resample
+                    # Make downscale function, input resampled grid, orig dem also resample
                     writeMap(os.path.join(odir,mapname),oformat,xhires,yhires,newdata,-999.0)
                 else:
                     writeMap(os.path.join(odir,mapname),oformat,ncstepobj.lon,ncstepobj.lat[::-1],flipud(mstack[cnt,:,:]),-999.0)
@@ -200,7 +197,6 @@ def main(argv=None):
                 #save_as_mapsstack(ncstepobj.lat,ncstepobj.lon,mstack,timelist,odir,prefix=oprefix,oformat=oformat)
 
     logger.info("Done.")
-
 
 
 
