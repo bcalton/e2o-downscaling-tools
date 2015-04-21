@@ -4,7 +4,7 @@ Get a variable from the forcing data from the e2o server for a specific region a
 
 usage:
 
-    e2o_getvar.py -I inifile [-l loglevel]
+    e2o_getvar.py -I inifile [-l loglevel][-h]
 
     -I inifile - ini file with settings which data to get
     -l loglevel (must be one of DEBUG, WARNING, ERROR)
@@ -16,7 +16,7 @@ import osgeo.gdal as gdal
 from osgeo.gdalconst import *
 import datetime
 from numpy import *
-from e2o_utils import *
+from e2o_dstools.e2o_utils import *
 
 
 def usage(*args):
@@ -104,12 +104,13 @@ def main(argv=None):
             return
 
     try:
-        opts, args = getopt.getopt(argv, 'I:l:')
+        opts, args = getopt.getopt(argv, 'I:l:h')
     except getopt.error, msg:
         usage(msg)
 
     for o, a in opts:
         if o == '-I': inifile = a
+        if o == '-h': usage()
         if o == '-l': exec "loglevel = logging." + a
 
 
@@ -186,7 +187,7 @@ def main(argv=None):
                 if resampling == "True":
                     newdata = resample_grid(flipud(mstack[cnt,:,:]),ncstepobj.lon,ncstepobj.lat, xhires,yhires,method=interpolmethod)
                     if downscaling == "True":
-                        raise ValueError "Downscaling not implemented"
+                        raise ValueError("Downscaling not implemented")
 
                     # Make downscale function, input resampled grid, orig dem also resample
                     writeMap(os.path.join(odir,mapname),oformat,xhires,yhires,newdata,-999.0)

@@ -187,12 +187,10 @@ def correctrad(Day,Hour,Lat,Lon,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAlt
     # ----------------------------
     # cosIncident :cosine of angle of incident; angle solar beams to angle surface
     cosIncident = sin(SolAlt)*cos(Slope)+cos(SolAlt)*sin(Slope)*cos(SolAzi-Aspect)
-    # Fro flat surface..  
+    # For flat surface..
     FlatLine = spatial(scalar(0.00001))
     FlatSpect = spatial(scalar(0.0000))
     cosIncidentFlat = sin(SolAlt)*cos(FlatLine)+cos(SolAlt)*sin(FlatLine)*cos(SolAzi-FlatSpect)
-    # Fro flat surface..    
-    #cosIncident = sin(SolAlt) + cos(SolAzi-Aspect)
 
     # Critical angle sun
     # ----------------------------
@@ -202,18 +200,17 @@ def correctrad(Day,Hour,Lat,Lon,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAlt
     # NOTE: for a changing DEM in time use following 3 statements and put a #
     #       for the 4th CritSun statement
     HoriAng   = cover(horizontan(Altitude_UnitLatLon,directional(SolAzi)),0)
+
+
+
     #HoriAng   = horizontan(Altitude,directional(SolAzi))
     HoriAng   = ifthenelse(HoriAng < 0, scalar(0), HoriAng)
     CritSun   = ifthenelse(SolAlt > 90, scalar(0), scalar(atan(HoriAng)))
     Shade   = SolAlt > CritSun
-    #Shade = spatial(boolean(1))
-    # Radiation outer atmosphere
-    # ----------------------------
-    #report(HoriAng,"hor.map")
 
     OpCorr = Trans**((sqrt(1229.0+(614.0*sin(SolAlt))**2) -614.0*sin(SolAlt))*AtmPcor)    # correction for air masses [-]
     AltOpCorr = Trans**((sqrt(1229.0+(614.0*sin(SolAlt))**2) -614.0*sin(SolAlt))*AtmPcorAlt)
-    #CorFac = max(OpCorr,0.001)/max(AltOpCorr,0.001)
+
     Sout   = Sc*(1+0.034*cos(360*Day/365.0)) # radiation outer atmosphere [W/m2]
     Snor   = Sout*OpCorr                   # rad on surface normal to the beam [W/m2]
 
@@ -319,7 +316,7 @@ def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, AltDem, lo
             e2o_utils.writeMap(os.path.join(SaveDir,"CORDIR00." + nr+ postfix),outformat,x,y,data, 1E31)
             data = pcr2numpy(flatdir/Calcsteps,1E31)
             e2o_utils.writeMap(os.path.join(SaveDir,"FLATDIR0." + nr+ postfix),outformat,x,y,data, 1E31)
-            data = pcr2numpy(avgoptcor/avgaltoptcor,1E31)
+            data = pcr2numpy(max(0.00001,avgoptcor)/max(0.00001,avgaltoptcor) ,1E31)
             e2o_utils.writeMap(os.path.join(SaveDir,"OPT00000." + nr+ postfix),outformat,x,y,data, 1E31)
 
 
@@ -397,13 +394,14 @@ def main(argv=None):
     if not os.path.exists(outputdir):
         os.mkdir(outputdir)
 
-    logger.debug("Reading dem: " " thedem")
+    logger.debug("Reading dem: " + thedem)
     setclone(thedem)
     dem = readmap(thedem)
     if "notset" not in lowresdem:
+        logger.debug("Resampling dem...")
         LresX, LresY, Lcols, Lrows, lowResLon, lowResLat, lowResDEM, FillVal = e2o_utils.readMap(lowresdem,'GTiff',logger)
         resX, resY, cols, rows, highResLon, highResLat, highResDEM, FillVal = e2o_utils.readMap(thedem,'GTiff',logger)
-        resLowResDEMNear = e2o_utils.resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method='linear',FillVal=0.0)
+        resLowResDEMNear = e2o_utils.resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method='nearest',FillVal=0.0)
         Altdem = numpy2pcr(Scalar,resLowResDEMNear,FillVal)
     else:
         Altdem = dem

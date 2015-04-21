@@ -26,7 +26,7 @@ setup(name='e2o_dstoools',
       author_email='jaap.schellekens@deltares.nl',
       url='http://www.earth2observe.eu',
       license = "GPL",
-      scripts=['e2o_dstools/e2o_getvar.py'],
-      description='Download and downscaling tools for the earth2obserev datasets',
+      scripts=['e2o_dstools/e2o_getvar.py','e2o_dstools/e2o_calculateEvaporation.py'],
+      description='Download and downscaling tools for the earth2observe datasets',
       )
 

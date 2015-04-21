@@ -523,6 +523,7 @@ def writeMap(fileName, fileFormat, x, y, data, FillVal):
     # Processing
     if verbose:
         print 'Writing to temporary file ' + fileName + '.tif'
+        print "Output format: " + fileFormat
     # Create Output filename from (FEWS) product name and date and open for writing
     TempDataset = driver1.Create(fileName + '.tif',data.shape[1],data.shape[0],1,gdal.GDT_Float32)
     # Give georeferences
@@ -539,7 +540,7 @@ def writeMap(fileName, fileFormat, x, y, data, FillVal):
     # Create data to write to correct format (supported by 'CreateCopy')
     if verbose:
         print 'Writing to ' + fileName + '.map'
-    outDataset = driver2.CreateCopy(fileName, TempDataset, 0,options = [ 'COMPRESS=DEFLATE' ])
+    outDataset = driver2.CreateCopy(fileName, TempDataset, 0)
     TempDataset = None
     outDataset = None
     if verbose:
