@@ -119,10 +119,11 @@ timesteps is set to 60 minutes and the calculations are done for 5 hr in the mor
 <span id="implementation"></span><h1>Implementation<a class="headerlink" href="#module-e2o_dstools.e2o_radiation" title="Permalink to this headline">¶</a></h1>
 <p>Determine clear sky radiation over a Digital Elevation Model.</p>
 <p>Usage:</p>
-<div class="highlight-python"><div class="highlight"><pre>e2o_radiation -D DEM [-O outputdir][-S start day][-E end day]
+<div class="highlight-python"><div class="highlight"><pre>e2o_radiation -D DEM [-d DEM][-O outputdir][-S start day][-E end day]
           [-M][-x lon][-y lat][-h][-l loglevel][-T minutes]
 
 -D DEM Filename of the digital elevation model
+-d DEM option loc resolution dem to determien heigth correction for
 -O outputdir (default is . )
 -S Startday - Start day of the simulation (1 Jan is 1)
 -E EndDay - End day of the simulation
@@ -149,7 +150,7 @@ FLATDIR0.??? - Direct clear sky radiation on a flat surface
 </div>
 <dl class="function">
 <dt id="e2o_dstools.e2o_radiation.GenRadMaps">
-<tt class="descclassname">e2o_dstools.e2o_radiation.</tt><tt class="descname">GenRadMaps</tt><big>(</big><em>SaveDir</em>, <em>Lat</em>, <em>Lon</em>, <em>Slope</em>, <em>Aspect</em>, <em>Altitude</em>, <em>DegreeDem</em>, <em>logje</em>, <em>start=1</em>, <em>end=2</em>, <em>interval=60</em>, <em>shour=1</em>, <em>ehour=23</em>, <em>outformat='PCRaster'</em>, <em>Addpostfix=False</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_radiation.GenRadMaps" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">e2o_dstools.e2o_radiation.</tt><tt class="descname">GenRadMaps</tt><big>(</big><em>SaveDir</em>, <em>Lat</em>, <em>Lon</em>, <em>Slope</em>, <em>Aspect</em>, <em>Altitude</em>, <em>DegreeDem</em>, <em>AltDem</em>, <em>logje</em>, <em>start=1</em>, <em>end=2</em>, <em>interval=60</em>, <em>shour=1</em>, <em>ehour=23</em>, <em>outformat='PCRaster'</em>, <em>Addpostfix=False</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_radiation.GenRadMaps" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate radiation masp for a number of days</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -163,6 +164,7 @@ FLATDIR0.??? - Direct clear sky radiation on a flat surface
 <li><strong>Aspect</strong> &#8211; Aspect</li>
 <li><strong>Altitude</strong> &#8211; Altitude</li>
 <li><strong>DegreeDem</strong> &#8211; Altitude with elevation rescaled to degree lat/lon</li>
+<li><strong>AltDem</strong> &#8211; DEM to convert optcor to</li>
 <li><strong>logje</strong> &#8211; Logger</li>
 <li><strong>start</strong> &#8211; Start day of the year</li>
 <li><strong>end</strong> &#8211; End day of the year</li>
@@ -181,7 +183,7 @@ FLATDIR0.??? - Direct clear sky radiation on a flat surface
 
 <dl class="function">
 <dt id="e2o_dstools.e2o_radiation.correctrad">
-<tt class="descclassname">e2o_dstools.e2o_radiation.</tt><tt class="descname">correctrad</tt><big>(</big><em>Day</em>, <em>Hour</em>, <em>Lat</em>, <em>Lon</em>, <em>Slope</em>, <em>Aspect</em>, <em>Altitude</em>, <em>Altitude_UnitLatLon</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_radiation.correctrad" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">e2o_dstools.e2o_radiation.</tt><tt class="descname">correctrad</tt><big>(</big><em>Day</em>, <em>Hour</em>, <em>Lat</em>, <em>Lon</em>, <em>Slope</em>, <em>Aspect</em>, <em>Altitude</em>, <em>Altitude_UnitLatLon</em>, <em>AltAltitude</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_radiation.correctrad" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determines radiation over a DEM assuming clear sky for a specified hour of
 a day</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -200,6 +202,7 @@ a day</p>
 are in lat lon this maps should hold the Altitude converted
 to degrees. If the maps are in metres this maps should also
 be in metres</li>
+<li><strong>AltAltitude</strong> &#8211; DEM to tranfer optcorr to (CorFac)</li>
 </ul>
 </td>
 </tr>
@@ -213,7 +216,14 @@ be in metres</li>
 <tr class="field-even field"><td>&nbsp;</td><td class="field-body"><p class="first">Total radiation on the dem assuming a flat surface</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return SUN:</th><td class="field-body"><p class="first last">Map with shade (0) or no shade (1) pixels</p>
+<tr class="field-odd field"><th class="field-name">Return SUN:</th><td class="field-body"><p class="first">Map with shade (0) or no shade (1) pixels</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return OptCOr:</th><td class="field-body"><p class="first">Correction factor for atmosphere of Altitude DEM</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">Return AltOptcor:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><p class="first last">Correction factor for atmosphere of AltAltitude DEM</p>
 </td>
 </tr>
 </tbody>
@@ -266,7 +276,7 @@ Code taken from <a class="reference external" href="http:www.nga.mil/MSISiteCont
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>argv</strong> &#8211; See ussage</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>argv</strong> &#8211; See usage</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
 </tr>

@@ -116,7 +116,7 @@ def main(argv=None):
 
     logger = setlogger("e2o_getvar.log","e2o_getvar",level=loglevel)
     logger.debug("Reading settings from in: " + inifile)
-    theconf = iniFileSetUp("e2o_getvar.ini")
+    theconf = iniFileSetUp(inifile)
     interpolmethod ='linear'
 
 
@@ -146,20 +146,20 @@ def main(argv=None):
     FNlowResDEM = configget(logger,theconf,"downscaling","lowResDEM","origdem.map")
     logger.debug("Done reading settings.")
 
-    if downscaling =="True":
-        resampling = "True"
-        lowresX, lowresY, lowcols, lowrows, xlowres, ylowres, lowresdem, FillVal = readMap(FNlowResDEM,'PCRaster',logger)
+    if downscaling =="True" or resampling == "True":
         resX, resY, cols, rows, xhires, yhires, hiresdem, FillVal = readMap(FNhighResDEM,'PCRaster',logger)
         interpolmethod=configget(logger,theconf,"downscaling","interpolmethod",interpolmethod)
         # Resample orid dem to new resolutiion using nearest
-        lowresdem_resamp = resample_grid(lowresdem,xlowres,ylowres, xhires,yhires,method='nearest')
+        if downscaling == "True":
+            lowresX, lowresY, lowcols, lowrows, xlowres, ylowres, lowresdem, FillVal = readMap(FNlowResDEM,'PCRaster',logger)
+            lowresdem_resamp = resample_grid(lowresdem,xlowres,ylowres, xhires,yhires,method='nearest')
 
     #Add options for multiple variables
     for i in range (0,len(variables)):
         getDataForVar = False
         # Check whether variable exists in ini file
         getDataForVar = configget(logger,theconf,"selection",variables[i],"False")
-       
+        print getDataForVar
         # If variable is True read timeseries from file
         if getDataForVar == 'True':
             filename = filenames[i]

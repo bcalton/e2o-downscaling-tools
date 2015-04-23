@@ -146,6 +146,8 @@ def correctrad(Day,Hour,Lat,Lon,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAlt
     :return StotCor: Total radiation on the dem taking shadows into acount
     :return StotFlat: Total radiation on the dem assuming a flat surface
     :return SUN: Map with shade (0) or no shade (1) pixels
+    :return OptCOr: Correction factor for atmosphere of Altitude DEM
+    :return AltOptcor: Correction factor for atmosphere of AltAltitude DEM
     """
 
     Sc  = 1367.0          # Solar constant (Gates, 1980) [W/m2]

@@ -112,7 +112,8 @@ can be estimated by incorporation short wave measurements but if
 these are not available cloud cover estimates can also be used. By
 combining this with a DEM radiation at the earths surface can be
 determined including the effects of aspect and shading.</p>
-<p>The figure below shows the steps used to generated down-scale reference evaporation.</p>
+<p>The figure below shows the steps used to generate down-scaled reference evaporation
+in the scripts.</p>
 <p class="graphviz">
 <img src="_images/graphviz-67ae8ed1ed2f76e46d72b8f60540290d4d7df18e.png" alt="digraph steps {
 &quot;Clear sky radiation maps&quot; [shape=box];
@@ -129,55 +130,48 @@ dpi=69;
 <h2>ini file configuration<a class="headerlink" href="#ini-file-configuration" title="Permalink to this headline">¶</a></h2>
 <p>The .ini file below shows the available options</p>
 <div class="highlight-python"><div class="highlight"><pre>[url]
-# Server location and location of the WRR forcing
 serverroot = http://wci.earth2observe.eu/thredds/dodsC/
 wrrsetroot = ecmwf/met_forcing_v0/
 
 
-
-# What to do
 [selection]
-# Choose one of the three methods below
+
+calculateEvap = True
+#evapMethod = PenmanMonteith
 evapMethod = PenmanMonteith
 #evapMethod = Hargreaves
 #evapMethod = PriestleyTaylor
 
-# Resampling = True -&gt; resample to resolution of dEM specified in downscaling section
-# Downscaling = True -&gt; also apply DEM based correctiosn of T, Radiation, Pressure
+#downscaling options
 resampling  = True
 downscaling = True
+resamplingtype=linear
 
-# Specifye box to download from server. Should be a bit bigger that the DEM
-latmin = -90
-latmax = +90
-lonmin = -180
-lonmax = 180
-
-# Start and end-year, month and day of the evaporation calculations
+latmin = 20
+latmax = 60
+lonmin = -1
+lonmax = 15
 startyear = 1979
-endyear= 2012
+endyear= 1979
 startmonth = 1
-endmonth = 12
+endmonth = 1
 startday = 1
-endday = 31
-
+endday = 5
 
 [downscaling]
-# Wher to fine the output of the e2o_radiation script
-radcordir=output_rad
-# location of original DEM (WFDEI) and the local high resolution DEM
-highResDEM=highresdem\DEM.tif
-lowResDEM=lowresdem\dem.tif
+highResDEM=highResDEM\wflow_dem.map
+lowResDEM=lowResDEM\dem.tif
+radiationcordir=output_rad\
 
 
 [output]
 # Gdal output format string
 # See: http://www.gdal.org/formats_list.html
-# examples: AAIGrid, PCRaster, GTiff etc
-format=	GTiff
-directory=output/
-prefix=PET
-# Is saveall is true all variables used are saved instead of only the PET
+# examples: AAIGrid, PCRaster, GTiff
+#format=PCRaster
+format=GTiff
+directory=output_evap/
+prefix=PM
 saveall=1
 </pre></div>
 </div>
@@ -287,7 +281,7 @@ nd Dhs from the estimated values Bh, and Dh.</p>
 
 <dl class="function">
 <dt id="e2o_dstools.e2o_calculateEvaporation.correctPres">
-<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">correctPres</tt><big>(</big><em>relevantDataFields</em>, <em>Pressure</em>, <em>highResDEM</em>, <em>resLowResDEM</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.correctPres" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">correctPres</tt><big>(</big><em>relevantDataFields</em>, <em>Pressure</em>, <em>highResDEM</em>, <em>resLowResDEM</em>, <em>FillVal=1e+31</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.correctPres" title="Permalink to this definition">¶</a></dt>
 <dd><p>Correction of air pressure for DEM based altitude correction based on barometric formula</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -333,146 +327,14 @@ nd Dhs from the estimated values Bh, and Dh.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="e2o_dstools.e2o_calculateEvaporation.get_times">
-<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">get_times</tt><big>(</big><em>startdate</em>, <em>enddate</em>, <em>serverroot</em>, <em>wrrsetroot</em>, <em>filename</em>, <em>timestepSeconds</em>, <em>logger</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.get_times" title="Permalink to this definition">¶</a></dt>
-<dd><p>generate a dictionary with date/times and the NC files in which the data resides for flexible timestep</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="e2o_dstools.e2o_calculateEvaporation.get_times_daily">
-<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">get_times_daily</tt><big>(</big><em>startdate</em>, <em>enddate</em>, <em>serverroot</em>, <em>wrrsetroot</em>, <em>filename</em>, <em>logger</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.get_times_daily" title="Permalink to this definition">¶</a></dt>
-<dd><p>generate a dictionary with date/times and the NC files in which the data resides</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="e2o_dstools.e2o_calculateEvaporation.getmapname">
-<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">getmapname</tt><big>(</big><em>number</em>, <em>prefix</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.getmapname" title="Permalink to this definition">¶</a></dt>
-<dd><p>generate a pcraster type mapname based on timestep and prefix
-:var number: number of the mape
-:var prefix: prefix for the map</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Name</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="class">
-<dt id="e2o_dstools.e2o_calculateEvaporation.getstep">
-<em class="property">class </em><tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">getstep</tt><big>(</big><em>nclist</em>, <em>BB</em>, <em>varname</em>, <em>timestepSeconds</em>, <em>logger</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.getstep" title="Permalink to this definition">¶</a></dt>
-<dd><p>class to get data from a set of NC files for user defined timestep in seconds
-Initialise with a list of netcdf files and a variable name (standard_name)</p>
-<dl class="method">
-<dt id="e2o_dstools.e2o_calculateEvaporation.getstep.getdates">
-<tt class="descname">getdates</tt><big>(</big><em>alldates</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.getstep.getdates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Does not work yet</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="e2o_dstools.e2o_calculateEvaporation.getstepdaily">
-<em class="property">class </em><tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">getstepdaily</tt><big>(</big><em>nclist</em>, <em>BB</em>, <em>varname</em>, <em>logger</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.getstepdaily" title="Permalink to this definition">¶</a></dt>
-<dd><p>class to get data from a set of NC files
-Initialise with a list of netcdf files and a variable name (standard_name)</p>
-<dl class="method">
-<dt id="e2o_dstools.e2o_calculateEvaporation.getstepdaily.getdates">
-<tt class="descname">getdates</tt><big>(</big><em>alldates</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.getstepdaily.getdates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Does not work yet</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="e2o_dstools.e2o_calculateEvaporation.getstepdaily.getdates_seconds">
-<tt class="descname">getdates_seconds</tt><big>(</big><em>alldates</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.getstepdaily.getdates_seconds" title="Permalink to this definition">¶</a></dt>
-<dd><p>Does not work yet</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="e2o_dstools.e2o_calculateEvaporation.ncdatset">
-<em class="property">class </em><tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">ncdatset</tt><big>(</big><em>ncurl</em>, <em>logger</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.ncdatset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper around the nc object to simplify things</p>
-<p>Opens the dataset and determines the number of dimensions
-3 = T, Lat Lon
-4 = T heigth, Lat Lon</p>
-<dl class="method">
-<dt id="e2o_dstools.e2o_calculateEvaporation.ncdatset.getheigth">
-<tt class="descname">getheigth</tt><big>(</big><em>ncdataset</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.ncdatset.getheigth" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="e2o_dstools.e2o_calculateEvaporation.ncdatset.getlat">
-<tt class="descname">getlat</tt><big>(</big><em>ncdataset</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.ncdatset.getlat" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="e2o_dstools.e2o_calculateEvaporation.ncdatset.getlon">
-<tt class="descname">getlon</tt><big>(</big><em>ncdataset</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.ncdatset.getlon" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="e2o_dstools.e2o_calculateEvaporation.ncdatset.gettime">
-<tt class="descname">gettime</tt><big>(</big><em>ncdataset</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.ncdatset.gettime" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="e2o_dstools.e2o_calculateEvaporation.ncdatset.getvarbyname">
-<tt class="descname">getvarbyname</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.ncdatset.getvarbyname" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="e2o_dstools.e2o_calculateEvaporation.readMap">
-<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">readMap</tt><big>(</big><em>fileName</em>, <em>fileFormat</em>, <em>logger</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.readMap" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read geographical file into memory</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="e2o_dstools.e2o_calculateEvaporation.resample">
-<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">resample</tt><big>(</big><em>highResdemname</em>, <em>prefix</em>, <em>ncnt</em>, <em>logger</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.resample" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>highResdemname</strong> &#8211; </li>
-<li><strong>prefix</strong> &#8211; </li>
-<li><strong>ncnt</strong> &#8211; map to resample</li>
-<li><strong>logger</strong> &#8211; </li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">resampled map</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="e2o_dstools.e2o_calculateEvaporation.resampleDEM">
-<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">resampleDEM</tt><big>(</big><em>nameHighResDEM</em>, <em>nameLowResDEM</em>, <em>logger</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.resampleDEM" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>nameHighResDEM</strong> &#8211; </li>
-<li><strong>nameLowResDEM</strong> &#8211; </li>
-<li><strong>logger</strong> &#8211; </li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">elevationcorrection, hiresdem, upscaled_lowresdem</p>
-</td>
-</tr>
-</tbody>
-</table>
+<dt id="e2o_dstools.e2o_calculateEvaporation.correctTemp">
+<tt class="descclassname">e2o_dstools.e2o_calculateEvaporation.</tt><tt class="descname">correctTemp</tt><big>(</big><em>Temp</em>, <em>elevationCorrection</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_calculateEvaporation.correctTemp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Elevation based correction of temperature</p>
+<p>inputs:
+Temperature             = daily mean, min or max temperature (degrees Celcius)
+Elevation correction    = difference between high resolution and low resolution (0.5 degrees) DEM  [m]</p>
+<p>constants:
+lapse_rate = 0.006 # [ K m-1 ]</p>
 </dd></dl>
 
 <dl class="function">

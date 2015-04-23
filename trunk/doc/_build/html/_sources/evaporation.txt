@@ -17,7 +17,8 @@ these are not available cloud cover estimates can also be used. By
 combining this with a DEM radiation at the earths surface can be
 determined including the effects of aspect and shading.
 
-The figure below shows the steps used to generated down-scale reference evaporation.
+The figure below shows the steps used to generate down-scaled reference evaporation
+in the scripts.
 
 .. digraph:: steps
 

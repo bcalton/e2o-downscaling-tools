@@ -1,0 +1,228 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>e2o_getvar - retrieve variables &mdash; e2o_dstools 2015 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2015',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="e2o_dstools 2015 documentation" href="index.html" />
+    <link rel="next" title="Questions and answers" href="faq.html" />
+    <link rel="prev" title="Potential evaporation" href="evaporation.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="faq.html" title="Questions and answers"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="evaporation.html" title="Potential evaporation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">e2o_dstools 2015 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">e2o_getvar - retrieve variables</a><ul>
+<li><a class="reference internal" href="#ini-file-configuration">ini file configuration</a></li>
+<li><a class="reference internal" href="#module-e2o_dstools.e2o_getvar">Implementation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="evaporation.html"
+                        title="previous chapter">Potential evaporation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="faq.html"
+                        title="next chapter">Questions and answers</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/e2o_getvar.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="e2o-getvar-retrieve-variables">
+<h1>e2o_getvar - retrieve variables<a class="headerlink" href="#e2o-getvar-retrieve-variables" title="Permalink to this headline">¶</a></h1>
+<p>e2o_getval gett variables from the server for a specific region (specified in the ini file)
+and optionally resamples those to a specified Digital Elevation Model (DEM).</p>
+<p>Usage:</p>
+<div class="highlight-python"><div class="highlight"><pre>e2o_getvar.py -I the_ini_file
+</pre></div>
+</div>
+<div class="section" id="ini-file-configuration">
+<h2>ini file configuration<a class="headerlink" href="#ini-file-configuration" title="Permalink to this headline">¶</a></h2>
+<p>The .ini file below shows the available options</p>
+<div class="highlight-python"><div class="highlight"><pre>[url]
+serverroot = http://wci.earth2observe.eu/thredds/dodsC/
+wrrsetroot = ecmwf/met_forcing_v0/
+
+
+[selection]
+
+latmax = 55.25
+latmin = 44.25
+lonmin = 4.25
+lonmax = 14.75
+startyear = 2000
+endyear= 2000
+startmonth = 1
+endmonth = 1
+startday = 1
+endday = 14
+
+# Add any of the following variables here
+Temperature=True
+#DownwellingLongWaveRadiation=True
+#SurfaceAtmosphericPressure=True
+#NearSurfaceSpecificHumidity=True
+#SurfaceIncidentShortwaveRadiation=True
+#SnowfallRate=True
+#NearSurfaceWindSpeed=True
+Rainfall = True
+resampling=True
+
+[downscaling]
+highResDEM=wflow_dem.map
+
+# linear, nearest, cubic
+interpolmethod=linear
+
+[output]
+# Gdal output format string
+# See: http://www.gdal.org/formats_list.html
+# examples: AAIGrid, PCRaster, GTiff
+format=GTiff
+directory=output/
+prefix=E2O
+</pre></div>
+</div>
+<p>An example ini file be found <a class="reference download internal" href="_downloads/e2o_getvar.ini"><tt class="xref download docutils literal"><span class="pre">here.</span></tt></a></p>
+</div>
+<div class="section" id="module-e2o_dstools.e2o_getvar">
+<span id="implementation"></span><h2>Implementation<a class="headerlink" href="#module-e2o_dstools.e2o_getvar" title="Permalink to this headline">¶</a></h2>
+<p>Get a variable from the forcing data from the e2o server for a specific region and time range</p>
+<p>usage:</p>
+<blockquote>
+<div><p>e2o_getvar.py -I inifile [-l loglevel][-h]</p>
+<p>-I inifile - ini file with settings which data to get
+-l loglevel (must be one of DEBUG, WARNING, ERROR)</p>
+</div></blockquote>
+<dl class="function">
+<dt id="e2o_dstools.e2o_getvar.save_as_mapsstack">
+<tt class="descclassname">e2o_dstools.e2o_getvar.</tt><tt class="descname">save_as_mapsstack</tt><big>(</big><em>lat</em>, <em>lon</em>, <em>data</em>, <em>times</em>, <em>directory</em>, <em>prefix='E2O'</em>, <em>oformat='PCRaster'</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_getvar.save_as_mapsstack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save a data matrix (multiple times) as a stack of (pcraster) maps.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lat</strong> &#8211; </li>
+<li><strong>lon</strong> &#8211; </li>
+<li><strong>data</strong> &#8211; </li>
+<li><strong>times</strong> &#8211; </li>
+<li><strong>directory</strong> &#8211; </li>
+<li><strong>prefix</strong> &#8211; </li>
+<li><strong>oformat</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="e2o_dstools.e2o_getvar.usage">
+<tt class="descclassname">e2o_dstools.e2o_getvar.</tt><tt class="descname">usage</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#e2o_dstools.e2o_getvar.usage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print usage information</p>
+<ul class="simple">
+<li><a href="#id1"><span class="problematic" id="id2">*</span></a>args: command line arguments given</li>
+</ul>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="faq.html" title="Questions and answers"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="evaporation.html" title="Potential evaporation"
+             >previous</a> |</li>
+        <li><a href="index.html">e2o_dstools 2015 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014-2015, Deltares.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>
