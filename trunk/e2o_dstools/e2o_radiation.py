@@ -125,6 +125,8 @@ def detRealCellLength(ZeroMap,sizeinmetres):
     return xl,yl,reallength
 
 
+
+
 def correctrad(Day,Hour,Lat,Lon,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAltitude):
     """ 
     Determines radiation over a DEM assuming clear sky for a specified hour of
@@ -213,7 +215,7 @@ def correctrad(Day,Hour,Lat,Lon,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAlt
     OpCorr = Trans**((sqrt(1229.0+(614.0*sin(SolAlt))**2) -614.0*sin(SolAlt))*AtmPcor)    # correction for air masses [-]
     AltOpCorr = Trans**((sqrt(1229.0+(614.0*sin(SolAlt))**2) -614.0*sin(SolAlt))*AtmPcorAlt)
 
-    Sout   = Sc*(1+0.034*cos(360*Day/365.0)) # radiation outer atmosphere [W/m2]
+    Sout   = Sc*(1+0.03344*cos(360*Day/365.0)) # radiation outer atmosphere [W/m2]
     Snor   = Sout*OpCorr                   # rad on surface normal to the beam [W/m2]
 
     # Radiation at DEM
