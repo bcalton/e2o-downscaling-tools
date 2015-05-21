@@ -203,4 +203,8 @@ differences can be up to 30 :math:`W/m^2` on this 1x1km DEM.
     inclined surface radiation
 
 
+Literature
+==========
+https://www.google.nl/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0CCYQFjAA&url=http%3A%2F%2Fwww.physics.arizona.edu%2F~cronin%2FSolar%2FReferences%2FIrradiance%2520Models%2520and%2520Data%2FWOC01.pdf&ei=CHNcVfKXLMf-UojagfAN&usg=AFQjCNG4m1HBoQMPeZYcPxIQRYtC4xcp6A&sig2=L02qLYq-2vNXwgwW_vUwFA
+
 

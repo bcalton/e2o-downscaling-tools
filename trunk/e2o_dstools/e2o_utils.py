@@ -484,6 +484,27 @@ def readMap(fileName, fileFormat,logger):
     return resX, resY, cols, rows, x, y, data, FillVal
 
 
+def getmapnamemonth(yearday,prefix):
+    """
+    generate a pcraster type mapname (month) based on a yearday as input
+    :var number: number of the mape
+    :var prefix: prefix for the map
+
+    :return: Name
+    """
+    month = (datetime.date(2000,1,1) + datetime.timedelta(days=yearday)).timetuple().tm_mon
+
+    below_thousand = month % 1000
+    above_thousand = month / 1000
+
+    realprefix =  os.path.basename(prefix)
+
+
+
+    mapname = os.path.join(os.path.dirname(prefix),
+                           str(realprefix + '%0' + str(8-len(realprefix)) + '.f.%03.f') % (above_thousand, below_thousand))
+
+    return mapname
 
 def getmapname(number,prefix):
     """
@@ -493,7 +514,7 @@ def getmapname(number,prefix):
 
     :return: Name
     """
-    print number
+
     below_thousand = number % 1000
     above_thousand = number / 1000
     mapname = str(prefix + '%0' + str(8-len(prefix)) + '.f.%03.f') % (above_thousand, below_thousand)
@@ -699,9 +720,9 @@ def resample_grid(gridZ_in,Xin,Yin,Xout,Yout,method='nearest',FillVal=1E31):
     # First average if the output has a lower resolution than the input grid
     insize = min(diff(Xin))
     outsize = min(diff(Xout))
-    if insize < outsize:
-        xsize = outsize/insize
-        gridZ_in = ndimage.filters.percentile_filter(gridZ_in,50,size=xsize)
+    #if insize < outsize:
+    #    xsize = outsize/insize
+    #    gridZ_in = ndimage.filters.percentile_filter(gridZ_in,50,size=xsize)
 
     if method in 'nearest linear':
         interobj = interpolate.RegularGridInterpolator((Ysrt,Xin), flipud(gridZ_in), method=method ,bounds_error=False,fill_value=float32(FillVal))
