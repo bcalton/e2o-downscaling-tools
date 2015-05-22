@@ -169,9 +169,7 @@ def correctrad(Day,Hour,Lat,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAltitud
     # SolDec  :declination sun per day  between +23 & -23 [deg]
     # HourAng :hour angle [-] of sun during day
     # SolAlt  :solar altitude [deg], height of sun above horizon
-    # SolDec  = -23.4*cos(360*(Day+10)/365);
-    # Now added a new function that should work on all latitudes! 
-    #theta    =(Day-1)*2 * pi/365  # day expressed in radians
+    # Now added a new function that should work on all latitudes!
     theta    =(Day-1)*360.0/365.0  # day expressed in degrees
      
     SolDec =180.0/pi * (0.006918-0.399912 * cos(theta)+0.070257 * sin(theta) - 0.006758 * cos(2*theta)+0.000907 * sin(2*theta) - 0.002697 * cos(3*theta)+0.001480 * sin(3*theta))
@@ -302,6 +300,7 @@ def correctrad_alt(Day,Hour,Lat,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAlt
 
     rayl = []
     m = []
+    LinkeCor = []
     for DEM in [Altitude, AltAltitude]:
         elevationcor = exp(-DEM/8434.5)
         # Assume more or less linear correction
@@ -312,12 +311,13 @@ def correctrad_alt(Day,Hour,Lat,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAlt
         rayl_ = ifthenelse(m_ <=25.0, rayl20,
                            1.0 / (10.4 + 0.718 * m_))
         rayl.append(rayl_)
-        LinkeCor = linkeelevationcor * Linke
+        LinkeCor.append(linkeelevationcor * Linke)
 
 
 
-    TL2 = 0.8662 * LinkeCor
+    TL2 = 0.8662 * LinkeCor[0]
     OpCorr = ifthenelse(sin(SolAlt) > 0.02, exp(-TL2 * m[0] * rayl[0]),cover(0.0))
+    TL2 = 0.8662 * LinkeCor[1]
     AltOpCorr = ifthenelse(sin(SolAlt) > 0.02,exp(-TL2 * m[1] * rayl[1]),cover(0.0))
 
 
@@ -555,6 +555,7 @@ def main(argv=None):
     lowresdem="notset"
     linkemapstack = None
     trans = 0.6
+    deminterpolmethod = 'nearest'
 
 
     for o, a in opts:
@@ -591,7 +592,7 @@ def main(argv=None):
         logger.debug("Resampling dem...")
         LresX, LresY, Lcols, Lrows, lowResLon, lowResLat, lowResDEM, FillVal = e2o_utils.readMap(lowresdem,'GTiff',logger)
         resX, resY, cols, rows, highResLon, highResLat, highResDEM, FillVal = e2o_utils.readMap(thedem,'GTiff',logger)
-        resLowResDEMNear = e2o_utils.resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method='nearest',FillVal=0.0)
+        resLowResDEMNear = e2o_utils.resample_grid(lowResDEM,lowResLon, lowResLat,highResLon, highResLat,method=deminterpolmethod,FillVal=0.0)
         Altdem = numpy2pcr(Scalar,resLowResDEMNear,FillVal)
     else:
         Altdem = dem
