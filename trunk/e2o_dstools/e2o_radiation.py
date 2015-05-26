@@ -416,8 +416,8 @@ def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, AltDem, lo
         demname = os.path.join(os.path.dirname(linkemapstack),"linkedem.map")
         logje.debug("Resampling linke turbidity map DEM: " + demname)
         resX, resY, cols, rows, LinkeLon, LinkeLat, LinkeDEM, FillVal = e2o_utils.readMap(demname,'PCRaster',logging)
-        lat = pcr2numpy(ycoordinate(boolean(Altitude + 10000.0)),0.0)[:,0]
-        lon = pcr2numpy(xcoordinate(boolean(Altitude + 10000.0)),0.0)[0,:]
+        lat = pcr2numpy(ycoordinate(boolean(cover(1.0))),0.0)[:,0]
+        lon = pcr2numpy(xcoordinate(boolean(cover(1.0))),0.0)[0,:]
         loncut = np.all([LinkeLon >= lon.min() - np.diff(LinkeLon).max(), LinkeLon <= lon.max() + np.diff(LinkeLon).max()], axis=0)
         latcut = np.all([LinkeLat >= lat.min() - np.diff(LinkeLat).max(), LinkeLat <= lat.max()+ np.diff(LinkeLat).max()], axis=0)
         LinkeLon = LinkeLon[loncut]
@@ -455,19 +455,21 @@ def GenRadMaps(SaveDir, Lat, Lon, Slope, Aspect, Altitude, DegreeDem, AltDem, lo
                         logje.debug("Resampling linke turbidity map: " + mapname)
                         resX, resY, cols, rows, LinkeLon, LinkeLat, LinkeMap, FillVal = e2o_utils.readMap(mapname,'PCRaster',logging)
 
-                        lat = pcr2numpy(ycoordinate(boolean(Altitude + 10000.0)),0.0)[:,0]
-                        lon = pcr2numpy(xcoordinate(boolean(Altitude + 10000.0)),0.0)[0,:]
+                        lat = pcr2numpy(ycoordinate(boolean(cover(1.0))),0.0)[:,0]
+                        lon = pcr2numpy(xcoordinate(boolean(cover(1.0))),0.0)[0,:]
 
                         loncut = np.all([LinkeLon >= lon.min() - np.diff(LinkeLon).max(), LinkeLon <= lon.max() + np.diff(LinkeLon).max()], axis=0)
                         latcut = np.all([LinkeLat >= lat.min() - np.diff(LinkeLat).max(), LinkeLat <= lat.max()+ np.diff(LinkeLat).max()], axis=0)
-                        np.savetxt('tt.txt',LinkeLon)
                         LinkeLon = LinkeLon[loncut]
                         LinkeLat = LinkeLat[latcut]
                         a = LinkeMap[latcut,:]
                         b = a[:,loncut]
-
+                        #print lat
+                        #print lon
+                        #print
                         linkemap = e2o_utils.resample_grid(b,LinkeLon, LinkeLat,lon, lat,method='linear',FillVal=0.0)
                         linkemappcr = numpy2pcr(Scalar,linkemap,0.0)
+                        #report(linkemappcr,'linkemappcr.map')
                         oldmonth = month
 
                     crad,  flat, shade, craddir, craddirflat, optcor, altoptcor = correctrad_alt(Day,float(Hour),Lat,Slope,Aspect,Altitude,DegreeDem,AltDem,linkemappcr,linkdempcr)
@@ -616,6 +618,10 @@ def main(argv=None):
     # Get slope in degrees
     Slope = scalar(atan(Slope))
     Aspect = cover(scalar(aspect(dem)),0.0)
+
+    #report(Slope,'slope.map')
+    #report(Aspect,'aspect.map')
+    #report(Altdem,'altdem.map')
 
     GenRadMaps(outputdir,LAT,LON,Slope,Aspect,dem,DEMxyUnits,Altdem,logger,Trans=trans,start=startday,end=endday,interval=calc_interval,shour=shour,ehour=ehour,outformat=oformat,Addpostfix=postfix,linkemapstack=linkemapstack)
 
