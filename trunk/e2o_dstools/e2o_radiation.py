@@ -566,7 +566,7 @@ def main(argv=None):
         if o == '-M': xymetres = true
         if o == '-x': lat = int(a)
         if o == '-y': lon = int(a)
-        if o == '-y': trans = float(a)
+        if o == '-t': trans = float(a)
         if o == '-S': startday = int(a)
         if o == '-E': endday = int(a)
         if o == '-T': calc_interval = int(a)
