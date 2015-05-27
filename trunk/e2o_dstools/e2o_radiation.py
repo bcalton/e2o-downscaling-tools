@@ -257,7 +257,7 @@ def correctrad_alt(Day,Hour,Lat,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAlt
                           be in metres
     :var AltAltitude: DEM to transfer optcorr to (CorFac)
     :var Linke: map with linke turbidity
-    :var LinkeDEM: elevation for each cell fro the linke map (fro correction to actual elevation)
+    :var LinkeDEM: elevation for each cell for the linke map (fro correction to actual elevation)
     :return Stot: Total radiation on the dem, shadows not taken into account
     :return StotCor: Total radiation on the dem taking shadows into acount
     :return StotFlat: Total radiation on the dem assuming a flat surface
@@ -312,7 +312,6 @@ def correctrad_alt(Day,Hour,Lat,Slope,Aspect,Altitude,Altitude_UnitLatLon,AltAlt
                            1.0 / (10.4 + 0.718 * m_))
         rayl.append(rayl_)
         LinkeCor.append(linkeelevationcor * Linke)
-
 
 
     TL2 = 0.8662 * LinkeCor[0]

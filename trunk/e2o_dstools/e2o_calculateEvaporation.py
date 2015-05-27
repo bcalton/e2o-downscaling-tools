@@ -4,9 +4,11 @@ Determine downscaled reference evaporation from the eartH2Observe WFDEI forcing
 
 usage:
 
-    e2o_calculateEvaporation.py -I inifile
+    e2o_calculateEvaporation.py -I inifile [-S start][-E end]
 
     -I inifile - ini file with settings which data to get
+    -S start - start timestep (default is 1)
+    -E end - end timestep default is last one defined in ini file (from date)
 
 """
 
@@ -451,6 +453,8 @@ def main(argv=None):
     evapMethod = None
     downscaling = None
     resampling = None
+    StartStep = 1
+    EndStep = 0
 
     nrcalls = 0
     loglevel=logging.INFO
@@ -461,7 +465,7 @@ def main(argv=None):
             usage()
             exit()
     try:
-        opts, args = getopt.getopt(argv, 'I:l:')
+        opts, args = getopt.getopt(argv, 'I:l:S:E:')
     except getopt.error, msg:
         usage(msg)
 
@@ -543,9 +547,11 @@ def main(argv=None):
 
     currentdate = start
     ncnt = 0
+    if EndStep == 0:
+        EndStep = (end - start).days + 1
     while currentdate <= end:
         ncnt += 1
-        if ncnt > 0:
+        if ncnt > 0 and ncnt >= StartStep and ncnt <= EndStep:
             # Get all daily datafields needed and aad to list
             relevantDataFields = []
 
