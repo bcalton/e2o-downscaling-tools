@@ -471,11 +471,14 @@ def main(argv=None):
 
     for o, a in opts:
         if o == '-I': inifile = a
+        if o == '-E': EndStep = int(a)
+        if o == '-S': StartStep = int(a)
 
     logger = setlogger("e2o_calculateEvap.log","e2o_calculateEvaporation",level=loglevel)
     #logger, ch = setlogger("e2o_getvar.log","e2o_getvar",level=loglevel)
     logger.info("Reading settings from ini: " + inifile)
-    theconf = iniFileSetUp(a)
+    theconf = iniFileSetUp(inifile)
+
 
     # Read period from file
     startyear = int(configget(logger,theconf,"selection","startyear",str(startyear)))
@@ -549,12 +552,19 @@ def main(argv=None):
     ncnt = 0
     if EndStep == 0:
         EndStep = (end - start).days + 1
+
+    logger.info("Will start at step: " + str(StartStep) + " date/time: " + str(start + datetime.timedelta(days=StartStep)))
+    logger.info("Will stop at step: " + str(EndStep) + " date/time: " + str(start + datetime.timedelta(days=EndStep)))
+
+
     while currentdate <= end:
         ncnt += 1
+
         if ncnt > 0 and ncnt >= StartStep and ncnt <= EndStep:
             # Get all daily datafields needed and aad to list
             relevantDataFields = []
-
+            print "lllll"
+            print ncnt
             # Get all data fro this timestep
             for i in range (0,len(variables)):
                 if variables[i] in relevantVars:
