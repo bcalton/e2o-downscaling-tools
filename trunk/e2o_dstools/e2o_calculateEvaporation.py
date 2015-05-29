@@ -58,7 +58,7 @@ def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaste
             writeMap(os.path.join(directory,mapname),oformat,lon,lat,data[cnt,:,:],-999.0)
             cnt = cnt + 1
 
-def save_as_mapsstack_per_day(lat,lon,data,ncnt,directory,prefix="E2O",oformat="PCRaster",FillVal=1E31):
+def save_as_mapsstack_per_day(lat,lon,data,ncnt,directory,prefix="E2O",oformat="PCRaster",FillVal=1E31,gzip=True):
 
     if not os.path.exists(directory):
         os.mkdir(directory)
@@ -66,6 +66,8 @@ def save_as_mapsstack_per_day(lat,lon,data,ncnt,directory,prefix="E2O",oformat="
     #print "saving map: " + os.path.join(directory,mapname)
     #writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[:,:]),-999.0)
     writeMap(os.path.join(directory,mapname),oformat,lon,lat,data[:,:],FillVal)
+    if gzip:
+        os.system('gzip ' + os.path.join(directory,mapname))
 
 def save_as_gtiff(lat,lon,data,ncnt,directory,prefix,oformat='GTiff'):
 
