@@ -1,15 +1,14 @@
 """
 Determine downscaled reference evaporation from the eartH2Observe WFDEI forcing
 
-
 usage:
 
-    e2o_calculateEvaporation.py -I inifile [-S start][-E end]
+    e2o_calculateEvaporation.py -I inifile [-S start][-E end][-l loglevel]
 
     -I inifile - ini file with settings which data to get
     -S start - start timestep (default is 1)
     -E end - end timestep default is last one defined in ini file (from date)
-
+    -l loglevel - DEBUG, INFO, WARN, ERROR
 """
 
 import getopt, sys, os, glob
@@ -59,6 +58,7 @@ def save_as_mapsstack(lat,lon,data,times,directory,prefix="E2O",oformat="PCRaste
             cnt = cnt + 1
 
 def save_as_mapsstack_per_day(lat,lon,data,ncnt,directory,prefix="E2O",oformat="PCRaster",FillVal=1E31,gzip=True):
+    import platform
 
     if not os.path.exists(directory):
         os.mkdir(directory)
@@ -67,7 +67,11 @@ def save_as_mapsstack_per_day(lat,lon,data,ncnt,directory,prefix="E2O",oformat="
     #writeMap(os.path.join(directory,mapname),oformat,lon,lat[::-1],flipud(data[:,:]),-999.0)
     writeMap(os.path.join(directory,mapname),oformat,lon,lat,data[:,:],FillVal)
     if gzip:
-        os.system('gzip ' + os.path.join(directory,mapname))
+        if 'Linux' in platform.system():
+            os.system('gzip ' + os.path.join(directory,mapname))
+
+
+
 
 def save_as_gtiff(lat,lon,data,ncnt,directory,prefix,oformat='GTiff'):
 
