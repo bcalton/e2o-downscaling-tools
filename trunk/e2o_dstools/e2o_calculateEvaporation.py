@@ -475,6 +475,7 @@ def main(argv=None):
         if o == '-I': inifile = a
         if o == '-E': EndStep = int(a)
         if o == '-S': StartStep = int(a)
+        if o == '-l': exec "loglevel = logging." + a
 
     logger = setlogger("e2o_calculateEvap.log","e2o_calculateEvaporation",level=loglevel)
     #logger, ch = setlogger("e2o_getvar.log","e2o_getvar",level=loglevel)
