@@ -565,7 +565,7 @@ def main(argv=None):
             relevantDataFields = []
             # Get all data fro this timestep
             mapname = os.path.join(odir,getmapname(ncnt,oprefix))
-            if os.path.exists(mapname):
+            if os.path.exists(mapname) or os.path.exists(mapname + ".gz") or os.path.exists(mapname + ".zip"):
                 logger.info("Skipping map: " + mapname)
             else:
                 for i in range (0,len(variables)):
