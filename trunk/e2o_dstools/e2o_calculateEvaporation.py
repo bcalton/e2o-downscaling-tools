@@ -563,16 +563,13 @@ def main(argv=None):
         if ncnt > 0 and ncnt >= StartStep and ncnt <= EndStep:
             # Get all daily datafields needed and aad to list
             relevantDataFields = []
-            print "lllll"
-            print ncnt
             # Get all data fro this timestep
-            for i in range (0,len(variables)):
-                if variables[i] in relevantVars:
-                    mapname = os.path.join(odir,getmapname(ncnt,oprefix))
-                    if os.path.exists(mapname):
-                        logger.info("Skipping map: " + mapname)
-                    else:
-
+            mapname = os.path.join(odir,getmapname(ncnt,oprefix))
+            if os.path.exists(mapname):
+                logger.info("Skipping map: " + mapname)
+            else:
+                for i in range (0,len(variables)):
+                    if variables[i] in relevantVars:
                         filename = filenames[i]
                         logger.info("Getting data field: " + filename)
                         standard_name = standard_names[i]
@@ -632,11 +629,7 @@ def main(argv=None):
                                 lons = ncstepobj.lon
                                 lats = ncstepobj.lat
 
-            if evapMethod == 'PenmanMonteith':
-                mapname = os.path.join(odir,getmapname(ncnt,oprefix))
-                if os.path.exists(mapname):
-                    logger.info("Skipping map: " + mapname)
-                else:
+                if evapMethod == 'PenmanMonteith':
                     # retrieve 3 hourly Temperature and calculate max and min Temperature
                     filename = 'Tair_E2OBS_'
                     standard_name = 'air_temperature'
@@ -677,11 +670,7 @@ def main(argv=None):
                         save_as_mapsstack_per_day(lats,lons,Kc,int(ncnt),odir,prefix='KC',oformat=oformat,FillVal=FillVal)
 
 
-            if evapMethod == 'PriestleyTaylor':
-                mapname = os.path.join(odir,getmapname(ncnt,oprefix))
-                if os.path.exists(mapname):
-                    logger.info("Skipping map: " + mapname)
-                else:
+                if evapMethod == 'PriestleyTaylor':
                     # retrieve 3 hourly Temperature and calculate min Temperature
                     filename = 'Tair_E2OBS_'
                     standard_name = 'air_temperature'
@@ -715,11 +704,7 @@ def main(argv=None):
                         save_as_mapsstack_per_day(lats,lons,relevantDataFields[0],int(ncnt),odir,prefix='TEMP',oformat=oformat,FillVal=FillVal)
 
 
-            if evapMethod == 'Hargreaves':
-                mapname = os.path.join(odir,getmapname(ncnt,oprefix))
-                if os.path.exists(mapname):
-                    logger.info("Skipping map: " + mapname)
-                else:
+                if evapMethod == 'Hargreaves':
                     # retrieve 3 hourly Temperature and calculate max and min Temperature
                     filename = 'Tair_E2OBS_'
                     standard_name = 'air_temperature'
