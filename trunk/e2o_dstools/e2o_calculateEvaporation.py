@@ -686,8 +686,8 @@ def main(argv=None):
                     tlist, timelist = get_times(currentdate,currentdate,serverroot, wrrsetroot, filename,timestepSeconds,logger )
                     ncstepobj = getstep(tlist,BB,standard_name,timestepSeconds,logger)
                     mstack = ncstepobj.getdates(timelist)
-                    tmin = mstack.min(axis=0)
-                    tmax = mstack.max(axis=0)
+                    tmin = flipud(mstack.min(axis=0))
+                    tmax = flipud(mstack.max(axis=0))
                     if downscaling == 'True' or resampling == "True":
                         tmin = resample_grid(tmin,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
                         tmax = resample_grid(tmax,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
@@ -722,8 +722,9 @@ def main(argv=None):
                     logger.info("Get actual 3hr data...")
                     ncstepobj = getstep(tlist,BB,standard_name,timestepSeconds,logger)
                     mstack = ncstepobj.getdates(timelist)
-                    tmin = mstack.min(axis=0)
-                    tmax = mstack.max(axis=0)
+                    tmin = flipud(mstack.min(axis=0))
+                    tmax = flipud(mstack.max(axis=0))
+
                     if downscaling == 'True' or resampling == "True":
                         tmin = resample_grid(tmin,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
                         tmax = resample_grid(tmax,ncstepobj.lon, ncstepobj.lat,highResLon, highResLat,method=resamplingtype,FillVal=FillVal)
